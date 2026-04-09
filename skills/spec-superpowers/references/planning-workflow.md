@@ -1,6 +1,56 @@
 # Planning Workflow
 
-This file describes how spec-superpowers uses planning-with-files for persistent planning (Phase 2) and session recovery (Phase 0).
+This file describes how spec-superpowers uses planning-with-files for persistent planning (Phase 2), session recovery (Phase 0), and task workspace management (Phase -1).
+
+## Task Workspace (Copy-Swap)
+
+### Why
+
+A project has many tasks over its lifetime. Without isolation, planning files from one task pollute the context of the next. The task workspace solves this by giving each task its own directory while keeping root-level files compatible with planning-with-files hooks.
+
+### Directory Structure
+
+```
+.spec-tasks/
+  _active.txt               (plain text — active task name, e.g. "feat-user-auth")
+  feat-user-auth/
+    task_plan.md
+    findings.md
+    progress.md
+  fix-login-bug/
+    ...
+project root/
+  task_plan.md               (real file — copy of active task's version)
+  findings.md
+  progress.md
+```
+
+### Copy-Swap Protocol
+
+Root-level planning files are always **real files** (never symlinks). This ensures planning-with-files hooks work natively and uninstalling spec-superpowers leaves everything functional.
+
+**Creating a new task:**
+1. Ask user for task name (kebab-case, e.g. `feat-user-auth`)
+2. Create `.spec-tasks/<name>/`
+3. Write task name to `.spec-tasks/_active.txt`
+4. Root planning files are created normally by the pipeline
+
+**Switching tasks:**
+1. Copy root `task_plan.md`, `findings.md`, `progress.md` → `.spec-tasks/<old-task>/`
+2. Copy `.spec-tasks/<new-task>/` files → root
+3. Update `.spec-tasks/_active.txt` with new task name
+
+**Archiving a task (Phase 4):**
+1. Copy root planning files → `.spec-tasks/<task>/`
+2. Delete root `task_plan.md`, `findings.md`, `progress.md`
+3. Delete `.spec-tasks/_active.txt`
+
+### Uninstall Safety
+
+After removing spec-superpowers:
+- Root planning files are plain files → planning-with-files works normally
+- `.spec-tasks/` is a harmless directory of historical backups
+- No symlinks, no Windows permission issues
 
 ## Three-File System
 
@@ -48,6 +98,40 @@ Tracks execution status:
 - Gate clearance records
 
 In Light mode, progress.md is minimal — only enough to provide Gate G3 evidence.
+
+## writing-plans vs planning-with-files Responsibilities
+
+These two modules have complementary roles:
+
+| Aspect | writing-plans (Superpowers) | planning-with-files |
+|--------|----------------------------|---------------------|
+| **Role** | Plan "Author" | Plan "Runtime" |
+| **Focus** | Content quality | Persistence + attention management |
+| **Output** | Plan text content | task_plan.md file + hooks |
+| **Criteria** | Each step 2-5 min, complete file paths, zero placeholders | Files at root, 2-Action Rule for findings |
+
+**Flow:**
+1. writing-plans generates plan content (quality standards apply)
+2. Content is formatted per planning-with-files' task_plan.md template
+3. Written directly into root `task_plan.md`
+4. planning-with-files hooks auto-manage attention from this point
+
+All plans live in `.spec-tasks/<task>/task_plan.md` — no separate `docs/superpowers/plans/` needed.
+
+## planning-with-files Hook System
+
+planning-with-files uses hooks to automatically inject planning context into the agent's attention. Understanding why this works is key to the workflow:
+
+| Hook | Trigger | Effect |
+|------|---------|--------|
+| `UserPromptSubmit` | Every user message | Reads planning files and injects summary into context |
+| `PreToolUse` | Before each tool call | Checks if current action aligns with the active task |
+| `PostToolUse` | After each tool call | Updates progress tracking |
+| `Stop` | Session ends | Ensures progress is saved |
+
+The **2-Action Rule**: After every 2 view/browser/search operations, findings must be saved to `findings.md` to prevent information loss across multimodal context.
+
+These hooks activate automatically when planning files exist at the project root — no explicit invocation needed. This is why root-level real files are essential.
 
 ## Full Mode Planning
 
@@ -125,9 +209,10 @@ Gate G2 passes when **all** conditions are met:
 
 ## Important: Loose Coupling
 
-This workflow references only the planning-with-files stable interface:
+This workflow references only stable interfaces:
 
 - **File conventions**: `task_plan.md`, `findings.md`, `progress.md`
-- **Skill name**: `planning-with-files`
+- **Skill names**: `planning-with-files`, `writing-plans`
+- **Directory**: `.spec-tasks/` (managed by spec-superpowers orchestration only)
 
 Do NOT inline the internal logic of planning-with-files or Superpowers' writing-plans skill. If those modules update their internals, this workflow remains valid as long as the file conventions and skill names are preserved.

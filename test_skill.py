@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validation script for the spec-superpowers skill (~60 checks across 10 categories)."""
+"""Validation script for the spec-superpowers skill (~70 checks across 12 categories)."""
 
 import os
 import re
@@ -40,7 +40,6 @@ category("Category 1: File existence")
 skill_md = SKILL_DIR / "SKILL.md"
 check("SKILL.md exists", skill_md.is_file())
 
-# Load content once for later categories
 skill_text = skill_md.read_text(encoding="utf-8") if skill_md.is_file() else ""
 
 # ---------------------------------------------------------------------------
@@ -174,9 +173,96 @@ check(
 )
 
 # ---------------------------------------------------------------------------
-# Category 10 — Dependency skills installed
+# Category 10 — v2 features: Task Workspace
 # ---------------------------------------------------------------------------
-category("Category 10: Dependency skills installed")
+category("Category 10: v2 features — Task Workspace")
+
+check(
+    "SKILL.md mentions .spec-tasks or task workspace",
+    ".spec-tasks" in skill_text or "task workspace" in lower_text or "task router" in lower_text,
+)
+check(
+    "SKILL.md mentions _active.txt",
+    "_active.txt" in skill_text,
+)
+check(
+    "SKILL.md mentions copy-swap (not symlink)",
+    "copy-swap" in lower_text or "copy" in lower_text and "swap" in lower_text,
+)
+check(
+    "SKILL.md mentions /spec-superpowers switch command",
+    "/spec-superpowers switch" in skill_text,
+)
+
+planning_wf = refs_dir / "planning-workflow.md"
+planning_text = planning_wf.read_text(encoding="utf-8") if planning_wf.is_file() else ""
+planning_lower = planning_text.lower()
+
+check(
+    "planning-workflow.md mentions copy-swap protocol",
+    "copy-swap" in planning_lower,
+)
+check(
+    "planning-workflow.md mentions hook system",
+    "hook" in planning_lower,
+)
+check(
+    "planning-workflow.md mentions writing-plans vs planning-with-files responsibilities",
+    "author" in planning_lower and "runtime" in planning_lower,
+)
+
+# ---------------------------------------------------------------------------
+# Category 11 — v2 features: OpenSpec validate/archive + escalate/simplify
+# ---------------------------------------------------------------------------
+category("Category 11: v2 features — validate/archive/escalate/simplify")
+
+check(
+    "SKILL.md mentions openspec validate",
+    "openspec validate" in lower_text or "validate" in lower_text,
+)
+check(
+    "SKILL.md mentions escalate command",
+    "/spec-superpowers escalate" in skill_text,
+)
+check(
+    "SKILL.md mentions simplify command",
+    "/spec-superpowers simplify" in skill_text,
+)
+
+openspec_wf = refs_dir / "openspec-workflow.md"
+openspec_text = openspec_wf.read_text(encoding="utf-8") if openspec_wf.is_file() else ""
+openspec_lower = openspec_text.lower()
+
+check(
+    "openspec-workflow.md mentions openspec validate",
+    "openspec validate" in openspec_lower,
+)
+check(
+    "openspec-workflow.md mentions openspec archive",
+    "openspec archive" in openspec_lower,
+)
+check(
+    "openspec-workflow.md mentions multi-change support",
+    "multi-change" in openspec_lower or "changes/" in openspec_text,
+)
+
+quality_gates = refs_dir / "quality-gates.md"
+qg_text = quality_gates.read_text(encoding="utf-8") if quality_gates.is_file() else ""
+qg_lower = qg_text.lower()
+
+check(
+    "quality-gates.md mentions openspec validate in G1",
+    "openspec validate" in qg_lower,
+)
+check(
+    "quality-gates.md mentions escalate/simplify transitions",
+    "escalate" in qg_lower and "simplify" in qg_lower,
+)
+
+# ---------------------------------------------------------------------------
+# Category 12 — Dependency skills installed (expected to fail locally)
+# ---------------------------------------------------------------------------
+category("Category 12: Dependency skills installed")
 
 dep_skills = [
     "using-superpowers",

@@ -33,20 +33,22 @@ Re-read `task_plan.md`, `findings.md`, and `progress.md`. Run the 5-Question Reb
 |-------|-------|
 | **Position** | Phase 1 → Phase 2 |
 | **Trigger** | Spec written by OpenSpec (artifacts in `openspec/`) |
-| **Pass** | User explicitly confirmed spec + brainstorming review loop passed |
-| **Fail** | Revise spec based on reviewer feedback, resubmit for user confirmation |
+| **Pass** | `openspec validate` passed + User explicitly confirmed spec + brainstorming review loop passed |
+| **Fail** | Fix validation errors first, then revise spec based on reviewer feedback, resubmit for user confirmation |
 
 ### Pass Criteria Detail
 
-Two conditions must both be true:
+Three conditions must all be true:
 
-1. **User confirmation** — The user said "confirmed", "approved", "looks good", "lgtm", or equivalent. Ambiguous responses do not count.
-2. **Brainstorming review loop** — A spec-document-reviewer subagent reviewed the spec and approved it (max 3 rounds).
+1. **Structural validation** — `openspec validate --change <name>` passes with no errors. If validation fails, fix structural issues before proceeding to review.
+2. **User confirmation** — The user said "confirmed", "approved", "looks good", "lgtm", or equivalent. Ambiguous responses do not count.
+3. **Brainstorming review loop** — A spec-document-reviewer subagent reviewed the spec and approved it (max 3 rounds).
 
 ### Failure Handling
 
+- If `openspec validate` fails: fix the structural issues in the spec artifacts, re-run validate
 - If the reviewer rejects: fix the identified issues, resubmit to reviewer
-- If the user requests changes: revise the spec, re-run the review loop, then ask for confirmation again
+- If the user requests changes: revise the spec, re-run validate + review loop, then ask for confirmation again
 - After 3 review rounds still failing: escalate to user with the outstanding issues
 
 ---
@@ -163,3 +165,29 @@ Escalate to user for decision
 ```
 
 Each strike is logged in `progress.md` for audit purposes.
+
+---
+
+## Complexity Upgrade/Downgrade Transitions
+
+When the user invokes `/spec-superpowers escalate` or `/spec-superpowers simplify` mid-workflow:
+
+### Escalate (Light → Full)
+
+| Current Phase | Action |
+|---------------|--------|
+| Phase 1 (in progress) | Add `/opsx:explore` step before continuing. Re-run `openspec validate` at G1. |
+| Phase 2 (in progress) | Generate `findings.md` for remaining tasks. G2 now requires all three files. |
+| Phase 3 (in progress) | No structural change — Full review criteria apply to remaining work. |
+
+All Phase 1 artifacts produced so far are preserved. No rework required.
+
+### Simplify (Full → Light)
+
+| Current Phase | Action |
+|---------------|--------|
+| Phase 1 (in progress) | Skip remaining `/opsx:explore` if not yet done. |
+| Phase 2 (in progress) | Stop updating `findings.md`. G2 drops the `findings.md` requirement. |
+| Phase 3 (in progress) | No structural change — Light review criteria apply to remaining work. |
+
+Existing artifacts (e.g., `findings.md` already written) are kept but no longer required for gate clearance.

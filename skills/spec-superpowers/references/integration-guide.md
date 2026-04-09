@@ -62,7 +62,29 @@ If **any** dependency is missing:
 | Upgrade planning-with-files | Skill files update | spec-superpowers unaffected |
 | Upgrade spec-superpowers | Orchestration updates | Three modules unaffected |
 
-spec-superpowers is a pure orchestration layer. Removing it leaves OpenSpec, planning-with-files, and Superpowers fully functional as standalone tools.
+spec-superpowers is a pure orchestration layer. Removing it leaves OpenSpec, planning-with-files, and Superpowers fully functional as standalone tools. The `.spec-tasks/` directory remains as harmless historical backups.
+
+## .spec-tasks Directory
+
+spec-superpowers manages task isolation via a `.spec-tasks/` directory at the project root:
+
+```
+.spec-tasks/
+  _active.txt         (active task name)
+  feat-user-auth/     (backup of planning files for this task)
+    task_plan.md
+    findings.md
+    progress.md
+  fix-login-bug/
+    ...
+```
+
+### Key Points
+
+- Root-level planning files are always **real files** (copy-swap, not symlinks)
+- `.spec-tasks/` is managed only by spec-superpowers orchestration
+- After uninstalling spec-superpowers: root files are plain files (planning-with-files works normally), `.spec-tasks/` can be safely deleted
+- Add `.spec-tasks/` to `.gitignore` if you don't want task history in version control
 
 ## Troubleshooting FAQ
 
@@ -94,3 +116,22 @@ spec-superpowers is a pure orchestration layer. Removing it leaves OpenSpec, pla
 - Run `openspec init` to initialize the OpenSpec workspace
 - OpenSpec uses the `openspec/` directory (not `.openspec/`)
 - Verify the directory exists after initialization: `ls openspec/`
+
+### How do I switch between tasks?
+
+- Run `/spec-superpowers switch` or `/spec-superpowers` (the Task Router in Phase -1 will detect the active task and offer switch options)
+- The copy-swap mechanism saves current root planning files to `.spec-tasks/<old-task>/` and loads the new task's files
+- OpenSpec changes are managed natively via `openspec/changes/<name>/` — no manual switching needed
+
+### What happens to .spec-tasks after uninstalling spec-superpowers?
+
+- `.spec-tasks/` becomes a harmless directory of task backups
+- Root planning files remain as regular files — planning-with-files continues to work
+- You can safely delete `.spec-tasks/` if no longer needed
+- No symlinks to break, no special cleanup required
+
+### openspec validate failing?
+
+- Run `openspec validate --change <name>` manually to see detailed errors
+- Common issues: missing required fields, incomplete spec structure
+- Fix the structural issues, then re-run the spec-superpowers workflow
