@@ -1,0 +1,18 @@
+---
+description: "Spec-Superpowers gatekeeper: blocks coding without confirmed spec"
+globs: "*"
+alwaysApply: true
+---
+
+## Spec-Superpowers Gatekeeper
+
+Any new feature, bugfix, or refactor must complete the spec workflow and receive explicit user confirmation before writing code.
+
+**Detection logic:**
+- Coding task identified → check for user-confirmed Spec
+- No confirmed Spec → guide user: "Please run `/spec-superpowers` to start the specification workflow."
+- User pushes to skip → politely decline: "The spec-superpowers workflow requires specification before implementation. Please run `/spec-superpowers` to start."
+
+**Pass condition:** Confirmed spec exists — detect `openspec/` directory with spec files.
+
+**Full workflow driven by `spec-superpowers` Skill. This rule is the always-on gatekeeper only.**
