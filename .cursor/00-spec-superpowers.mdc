@@ -1,18 +1,38 @@
 ---
-description: "Spec-Superpowers gatekeeper: blocks coding without confirmed spec"
+description: "Spec-Superpowers gatekeeper: auto-recovery, session awareness, and coding guard"
 globs: "*"
 alwaysApply: true
 ---
 
 ## Spec-Superpowers Gatekeeper
 
-Any new feature, bugfix, or refactor must complete the spec workflow and receive explicit user confirmation before writing code.
+This rule runs on every message. It handles three scenarios in order:
 
-**Detection logic:**
-- Coding task identified → check for active task with confirmed spec
-- No active task or no confirmed spec → guide user: "Please run `/spec-superpowers` to start the specification workflow."
-- User pushes to skip → politely decline: "The spec-superpowers workflow requires specification before implementation. Please run `/spec-superpowers` to start."
+### 1. Active Task Detection (Auto-Recovery)
 
-**Pass condition:** Active task exists (`.spec-tasks/_active.txt` present) AND corresponding spec artifacts exist in `openspec/changes/<task-name>/` or `openspec/`.
+Check if `.spec-tasks/_active.txt` exists:
 
-**Full workflow driven by `spec-superpowers` Skill. This rule is the always-on gatekeeper only.**
+- **Yes** → Read the task name. Read `task_plan.md` and `progress.md` at project root (or in `.spec-tasks/<task>/` if root copies missing).
+  - Silently restore context: summarize active task, current phase, and next step.
+  - If root planning files are missing but `.spec-tasks/<task>/` has them → copy them to root first (copy-swap restore).
+  - Then tell the user: "检测到活跃任务 **<task-name>**，已恢复上下文。当前进度：<brief status>。可以继续，或输入 `/spec-superpowers` 管理任务。"
+  - Proceed with the user's request in the context of the active task.
+- **No** → go to step 2.
+
+### 2. Coding Guard
+
+If no active task exists AND the user's request involves writing/modifying code (new feature, bugfix, refactor):
+
+- Block and guide: "请先运行 `/spec-superpowers` 启动规范工作流。"
+- User pushes to skip → firmly decline: "spec-superpowers 工作流要求先完成规范再编码。请运行 `/spec-superpowers` 开始。"
+- Exception: trivial non-functional changes (typo fix, comment edit, formatting) may proceed without the workflow.
+
+### 3. Non-Coding Pass-Through
+
+If no active task AND the request is not a coding task (questions, exploration, discussion):
+
+- Allow freely. No intervention needed.
+
+**Pass condition for coding:** `.spec-tasks/_active.txt` present AND spec artifacts exist in `openspec/changes/<task-name>/` or `openspec/`.
+
+**Full workflow driven by the `spec-superpowers` Skill. This rule is the always-on gatekeeper.**

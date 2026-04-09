@@ -170,7 +170,7 @@ Root-level planning files (`task_plan.md`, `findings.md`, `progress.md`) are alw
 - **Thin orchestration layer** -- SKILL.md describes "who to call, what to expect", never inlines module internals
 - **Loose coupling** -- references stable interfaces only; zero path coupling; orchestration is purely descriptive
 - **Hard quality gates** -- G0-G3 with automated review loops (max 3 rounds) at every phase transition
-- **Always-on gatekeeper** -- `.cursor/rules/00-spec-superpowers.mdc` blocks coding without a confirmed spec
+- **Always-on gatekeeper** -- `.cursor/rules/00-spec-superpowers.mdc` auto-recovers active tasks on new sessions, blocks coding without a confirmed spec, and passes through non-coding requests
 - **Task isolation** -- `.spec-tasks/` with copy-swap prevents context pollution between tasks
 
 ## Project Structure
