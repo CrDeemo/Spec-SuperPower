@@ -42,12 +42,25 @@ On switch/new: copy-swap root planning files with `.spec-tasks/` (real files, no
 
 ## Step 3: Triage Complexity
 
-AI suggests a level; user confirms or overrides.
+**MANDATORY**: AI must explicitly ask the user to confirm the complexity level before proceeding. Do NOT auto-select.
 
-| Level | When | Pipeline |
-|-------|------|----------|
-| **Light** | ≤2 files, no new API, no architecture change, <30 min | Simplified Phase 1-4 |
-| **Full** | Any criterion above is false | All phases |
+| Level | When (ALL must be true) | Pipeline |
+|-------|-------------------------|----------|
+| **Light** | ≤2 files AND no new public API AND no architecture change AND <30 min estimate | Simplified Phase 1-4 |
+| **Full** | ANY of the above is false | All phases with `/opsx:explore` |
+
+**Auto-Full triggers** (if ANY is true, must be Full — no user override to Light):
+- Architecture change (migration, new service, restructure)
+- New external dependency or integration
+- Database schema change
+- Security-related change
+- Affects >5 files
+
+**Flow**:
+1. AI analyzes the task and states its assessment with reasoning
+2. AI explicitly asks: "建议 [Light/Full] 模式，确认吗？或者你想选择另一个？"
+3. User confirms or overrides
+4. Only then proceed to Phase 0/1
 
 Mid-workflow: `/spec-superpowers escalate` (Light→Full) or `/spec-superpowers simplify` (Full→Light).
 
