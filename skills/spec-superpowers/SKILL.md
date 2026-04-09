@@ -42,6 +42,7 @@ AI suggests a level; user confirms or overrides.
 
 **Phase 0 — Session Recovery** (automatic)
 If `task_plan.md` exists, run the 5-Question Reboot Test and resume from checkpoint.
+**Gate G0**: Reboot test consistent + no context contradictions.
 Details: [references/planning-workflow.md](references/planning-workflow.md)
 
 **Phase 1 — Specification** (OpenSpec)
