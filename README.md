@@ -77,6 +77,7 @@ All three must be installed for the full workflow. Each also works independently
 | `/spec-superpowers plan` | Planning phase only |
 | `/spec-superpowers impl` | Implementation phase only |
 | `/spec-superpowers switch` | Switch to a different task workspace |
+| `/spec-superpowers clean` | Clean up archived tasks and stale artifacts |
 | `/spec-superpowers reset` | Clear current task state and start fresh |
 
 #### `/spec-superpowers`
@@ -98,6 +99,10 @@ Runs Phase 3 + 4 (implementation and archive). Requires `task_plan.md` at projec
 #### `/spec-superpowers switch`
 
 Switch between task workspaces. Shows a list of existing tasks in `.spec-tasks/` and lets you pick one, or create a new task. The current task's planning files are saved (copy-swap) before switching. Use when you need to pause one task and work on another.
+
+#### `/spec-superpowers clean`
+
+Interactive cleanup wizard for workflow artifacts. Scans five areas: archived tasks in `.spec-tasks/`, orphan root planning files, stale brainstorming sessions in `.superpowers/brainstorm/`, Superpowers docs in `docs/superpowers/`, and archived OpenSpec changes. For each area, you choose what to delete. Files owned by other modules (Superpowers, OpenSpec) are flagged as advisory — the wizard warns you before touching them. The active task is never deleted.
 
 #### `/spec-superpowers reset`
 

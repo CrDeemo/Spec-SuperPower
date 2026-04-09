@@ -21,6 +21,7 @@ Every feature, bugfix, and refactor goes through a specification phase first.
 | `/spec-superpowers plan` | planning-with-files planning phase only |
 | `/spec-superpowers impl` | Superpowers implementation phase only |
 | `/spec-superpowers switch` | Switch to a different task workspace |
+| `/spec-superpowers clean` | Clean up archived tasks and stale workflow artifacts |
 | `/spec-superpowers reset` | Clear current task state and start fresh |
 
 ## Step 1: Dependency Check
@@ -91,6 +92,7 @@ Details: [references/openspec-workflow.md](references/openspec-workflow.md) | [r
 - `/spec-superpowers spec` → Phase 1 only, stop at G1
 - `/spec-superpowers plan` → Phase 2 only (requires spec in `openspec/`), stop at G2
 - `/spec-superpowers impl` → Phase 3 + 4 (requires `task_plan.md`)
+- `/spec-superpowers clean` → Interactive cleanup wizard. Details: [references/integration-guide.md](references/integration-guide.md)
 
 ## Quality Gates
 

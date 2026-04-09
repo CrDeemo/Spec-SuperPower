@@ -77,6 +77,7 @@ rm -rf .spec-tasks/
 | `/spec-superpowers plan` | 仅执行计划阶段 |
 | `/spec-superpowers impl` | 仅执行实现阶段 |
 | `/spec-superpowers switch` | 切换到其他任务工作区 |
+| `/spec-superpowers clean` | 清理已归档任务和过期工作流产物 |
 | `/spec-superpowers reset` | 清除当前任务状态，重新开始 |
 
 #### `/spec-superpowers`
@@ -98,6 +99,10 @@ rm -rf .spec-tasks/
 #### `/spec-superpowers switch`
 
 在任务工作区之间切换。显示 `.spec-tasks/` 中的现有任务列表，可选择切换或创建新任务。切换前会自动保存当前任务的计划文件（copy-swap）。适用于需要暂停当前任务、转去处理其他任务的场景。
+
+#### `/spec-superpowers clean`
+
+交互式清理向导。扫描五个区域：`.spec-tasks/` 中的已归档任务、根目录孤立的计划文件、`.superpowers/brainstorm/` 中的旧头脑风暴会话、`docs/superpowers/` 中的 Superpowers 文档、以及 `openspec/changes/` 中已归档的变更。每个区域你可以选择全部删除、选择性删除或跳过。属于其他模块（Superpowers、OpenSpec）的文件会标记为"建议性清理"，删除前会额外警告。活跃任务永远不会被删除。
 
 #### `/spec-superpowers reset`
 

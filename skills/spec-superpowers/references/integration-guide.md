@@ -60,3 +60,59 @@ Pure orchestration layer. `.spec-tasks/` remains as harmless backups.
 **Switch tasks?** `/spec-superpowers switch` or let Task Router detect active task.
 
 **openspec validate failing?** Run manually: `openspec validate --change <name>`. Fix structural issues, re-run workflow.
+
+## Clean Command
+
+`/spec-superpowers clean` launches an interactive cleanup wizard:
+
+```
+/spec-superpowers clean
+    │
+    ├─ 1. Archived tasks (.spec-tasks/)
+    │   List completed/archived task dirs → user picks: delete all / selective / skip
+    │   Active task is never deleted.
+    │
+    ├─ 2. Orphan root files
+    │   No _active.txt but task_plan.md / findings.md / progress.md exist at root
+    │   → offer to remove or adopt into a new task
+    │
+    ├─ 3. Stale brainstorming sessions (.superpowers/brainstorm/)
+    │   List old session dirs → user picks: delete all / selective / skip
+    │   ⚠ Advisory only — these belong to Superpowers, not us
+    │
+    ├─ 4. Superpowers docs (docs/superpowers/)
+    │   List plans/specs dirs → user picks: delete all / selective / skip
+    │   ⚠ Advisory only — these belong to Superpowers
+    │
+    └─ 5. Archived OpenSpec changes (openspec/changes/)
+        List changes already archived → user picks: delete all / selective / skip
+        ⚠ Advisory only — these belong to OpenSpec
+```
+
+Rules:
+- Steps 1-2: spec-superpowers owns these, safe to delete directly
+- Steps 3-5: other modules own these, always ask user with warning before touching
+- Never delete without explicit user confirmation
+- Never delete the active task or its associated files
+- Show disk space freed after cleanup
+
+## Recommended .gitignore
+
+Add these to your project `.gitignore` to keep workflow artifacts out of version control:
+
+```gitignore
+# spec-superpowers workflow artifacts
+.spec-tasks/
+task_plan.md
+findings.md
+progress.md
+
+# Superpowers artifacts
+.superpowers/
+docs/superpowers/
+
+# OpenSpec (uncomment if you don't want specs in VCS)
+# openspec/
+```
+
+The install script appends these entries automatically if `.gitignore` exists.
