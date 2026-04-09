@@ -1,193 +1,117 @@
 # Quality Gates
 
-Four hard gates govern the spec-superpowers pipeline. Nothing proceeds until all checks pass.
+Four hard gates govern the pipeline. Nothing proceeds until all checks pass.
 
 ## Gate G0 — Session Recovery
 
 | Field | Value |
 |-------|-------|
 | **Position** | After Phase 0 |
-| **Trigger** | `task_plan.md` detected in project root, session recovery executed |
-| **Pass** | 5-Question Reboot Test answers are consistent + no context contradictions |
-| **Fail** | Re-read all planning files, run the reboot test again |
+| **Pass** | 5-Question Reboot Test consistent + no context contradictions |
+| **Fail** | Re-read planning files, re-test. Still inconsistent → ask user to resolve. |
 
-### Pass Criteria Detail
-
-The 5-Question Reboot Test must produce answers that are internally consistent:
-
-1. Checked tasks in task_plan.md match progress.md entries
-2. The next unchecked task is a logical continuation
-3. The overall goal aligns with the spec in `openspec/`
-4. Findings in findings.md do not contradict the current code state
-5. No orphaned progress (work recorded but not reflected in code)
-
-### Failure Handling
-
-Re-read `task_plan.md`, `findings.md`, and `progress.md`. Run the 5-Question Reboot Test again. If still inconsistent, present the contradictions to the user for resolution.
+Consistency checks: checked tasks ↔ progress.md, next task is logical continuation, goal ↔ spec, findings ↔ code state, no orphaned progress.
 
 ---
 
-## Gate G1 — Specification to Planning
+## Gate G1 — Specification → Planning
 
 | Field | Value |
 |-------|-------|
 | **Position** | Phase 1 → Phase 2 |
-| **Trigger** | Spec written by OpenSpec (artifacts in `openspec/`) |
-| **Pass** | `openspec validate` passed + User explicitly confirmed spec + brainstorming review loop passed |
-| **Fail** | Fix validation errors first, then revise spec based on reviewer feedback, resubmit for user confirmation |
+| **Pass** | `openspec validate` passed + user confirmed + brainstorming review loop passed |
+| **Fail** | Fix validation → revise spec → resubmit for confirmation |
 
-### Pass Criteria Detail
+Three conditions (all required):
+1. `openspec validate --change <name>` passes
+2. User said "confirmed" / "approved" / "looks good" / "lgtm" (ambiguous ≠ confirmed)
+3. Spec-document-reviewer subagent approved (max 3 rounds)
 
-Three conditions must all be true:
-
-1. **Structural validation** — `openspec validate --change <name>` passes with no errors. If validation fails, fix structural issues before proceeding to review.
-2. **User confirmation** — The user said "confirmed", "approved", "looks good", "lgtm", or equivalent. Ambiguous responses do not count.
-3. **Brainstorming review loop** — A spec-document-reviewer subagent reviewed the spec and approved it (max 3 rounds).
-
-### Failure Handling
-
-- If `openspec validate` fails: fix the structural issues in the spec artifacts, re-run validate
-- If the reviewer rejects: fix the identified issues, resubmit to reviewer
-- If the user requests changes: revise the spec, re-run validate + review loop, then ask for confirmation again
-- After 3 review rounds still failing: escalate to user with the outstanding issues
+Failure path: validate fails → fix structural issues. Reviewer rejects → fix and resubmit. User requests changes → revise → re-validate → re-review. 3 rounds still failing → escalate to user.
 
 ---
 
-## Gate G2 — Planning to Implementation
+## Gate G2 — Planning → Implementation
 
 | Field | Value |
 |-------|-------|
 | **Position** | Phase 2 → Phase 3 |
-| **Trigger** | Planning complete |
-| **Pass** | Planning files ready + every task fully annotated + writing-plans review loop passed |
-| **Fail** | Fill gaps in plan, re-check |
+| **Pass** | Files ready + every task annotated + writing-plans review loop passed |
+| **Fail** | Fill plan gaps → re-review |
 
-### Pass Criteria Detail
-
-1. **Files exist**:
-   - Full mode: `task_plan.md` + `findings.md` + `progress.md`
-   - Light mode: `task_plan.md` + `progress.md` (minimal)
-2. **Task annotations** — Every task in task_plan.md has:
-   - File paths (which files to create/modify)
-   - Acceptance criteria (what "done" looks like)
-   - Test strategy (how to verify completion)
-3. **Writing-plans review loop** — A plan-document-reviewer subagent reviewed the plan and approved it (max 3 rounds).
-
-### Failure Handling
-
-- If any task is missing file paths, acceptance criteria, or test strategy: fill the gaps
-- If the reviewer identifies issues: fix and resubmit
-- After 3 review rounds still failing: escalate to user with the outstanding issues
+Required files: Full = task_plan.md + findings.md + progress.md. Light = task_plan.md + progress.md.
+Every task needs: file paths + acceptance criteria + test strategy.
+Plan-document-reviewer subagent must approve (max 3 rounds).
 
 ---
 
-## Gate G3 — Implementation to Archive
+## Gate G3 — Implementation → Archive
 
 | Field | Value |
 |-------|-------|
 | **Position** | Phase 3 → Phase 4 |
-| **Trigger** | Implementation complete |
-| **Pass** | All tests pass + two-stage review passed + verification evidence in progress.md |
-| **Fail** | Errors escalate through 3-Strike protocol |
+| **Pass** | All tests pass + two-stage review passed + evidence in progress.md |
+| **Fail** | 3-Strike escalation protocol |
 
-### Pass Criteria Detail
+Two-stage review:
+1. Spec conformance — does implementation match the spec?
+2. Code quality — meets quality standards?
 
-1. **All tests pass** — Every test defined in the task plan runs successfully
-2. **Two-stage review** — Both stages must pass:
-   - Stage 1: Spec conformance (does the implementation match the spec?)
-   - Stage 2: Code quality (does the code meet quality standards?)
-3. **Verification evidence** — Results written to `progress.md` using the `verification-before-completion` skill
-
-### Failure Handling
-
-Errors escalate through the 3-Strike protocol (see below). If all recovery attempts fail, escalate to user.
+Evidence written via `verification-before-completion` skill.
 
 ---
 
 ## Review Loop Mechanism
 
-All gates with review loops follow the same pattern:
+All gates with reviews follow:
 
 ```
-Phase complete → dispatch reviewer subagent → review result
+Phase complete → dispatch reviewer subagent → result
     ├─ Pass → gate clears
-    └─ Fail → fix issues → re-review (max 3 rounds)
-                            └─ 3 rounds still failing → escalate to user
+    └─ Fail → fix → re-review (max 3 rounds → escalate to user)
 ```
 
-| Gate | Reviewer | Skill Used |
-|------|----------|-----------|
-| G1 | spec-document-reviewer subagent | `brainstorming` |
-| G2 | plan-document-reviewer subagent | `writing-plans` |
-| G3 | code-reviewer subagent (two-stage) | `requesting-code-review` |
-
-The reviewer subagent is dispatched automatically. The orchestrator does not proceed until the reviewer returns a pass or the round limit is reached.
+| Gate | Reviewer | Skill |
+|------|----------|-------|
+| G1 | spec-document-reviewer | `brainstorming` |
+| G2 | plan-document-reviewer | `writing-plans` |
+| G3 | code-reviewer (two-stage) | `requesting-code-review` |
 
 ---
 
-## Error Escalation Protocol (Phase 3)
-
-When an error occurs during implementation, follow this escalation path:
+## 3-Strike Error Escalation (Phase 3)
 
 ```
-Error detected
-    │
-    ▼
-Strike 1 — Standard fix attempt
-    Fix the error using normal debugging.
-    │
-    ├─ Fixed → continue implementation
-    └─ Still broken ↓
-    │
-    ▼
-Strike 2 — Check spec alignment
-    Verify the implementation hasn't drifted from the spec.
-    Compare current code against openspec/ artifacts.
-    │
-    ├─ Drift found → realign with spec → retry
-    └─ No drift, still broken ↓
-    │
-    ▼
-Strike 3 — Trigger systematic-debugging
-    Invoke the systematic-debugging skill for deep investigation.
-    │
-    ├─ Resolved → continue implementation
-    └─ Still unresolved ↓
-    │
-    ▼
-Challenge architecture assumptions
-    Question whether the spec's approach is fundamentally sound.
-    │
-    ▼
-Escalate to user for decision
-    Present findings, failed attempts, and ask the user
-    whether to revise the spec or take a different approach.
+Error → Strike 1: standard fix
+      → Strike 2: check spec alignment (compare code vs openspec/ artifacts)
+      → Strike 3: trigger systematic-debugging
+                    → still unresolved → challenge architecture → escalate to user
 ```
 
-Each strike is logged in `progress.md` for audit purposes.
+Each strike logged in `progress.md`.
 
 ---
 
-## Complexity Upgrade/Downgrade Transitions
+## Complexity Adjustment Protocol
 
-When the user invokes `/spec-superpowers escalate` or `/spec-superpowers simplify` mid-workflow:
+AI monitors complexity fit throughout the workflow and proactively suggests adjustments. No dedicated commands — AI triggers these based on context.
 
-### Escalate (Light → Full)
-
-| Current Phase | Action |
-|---------------|--------|
-| Phase 1 (in progress) | Add `/opsx:explore` step before continuing. Re-run `openspec validate` at G1. |
-| Phase 2 (in progress) | Generate `findings.md` for remaining tasks. G2 now requires all three files. |
-| Phase 3 (in progress) | No structural change — Full review criteria apply to remaining work. |
-
-All Phase 1 artifacts produced so far are preserved. No rework required.
-
-### Simplify (Full → Light)
+### Light → Full (Upgrade)
 
 | Current Phase | Action |
 |---------------|--------|
-| Phase 1 (in progress) | Skip remaining `/opsx:explore` if not yet done. |
-| Phase 2 (in progress) | Stop updating `findings.md`. G2 drops the `findings.md` requirement. |
-| Phase 3 (in progress) | No structural change — Light review criteria apply to remaining work. |
+| Phase 1 | Add `/opsx:explore`. Re-run validate at G1. |
+| Phase 2 | Generate `findings.md`. G2 requires all three files. |
+| Phase 3 | Full review criteria for remaining work. |
 
-Existing artifacts (e.g., `findings.md` already written) are kept but no longer required for gate clearance.
+Prior artifacts preserved — no rework. AI suggests upgrade when task exceeds Light criteria (more files than expected, new API surface, architecture implications).
+
+### Full → Light (Downgrade)
+
+| Current Phase | Action |
+|---------------|--------|
+| Phase 1 | Skip remaining `/opsx:explore`. |
+| Phase 2 | Stop updating `findings.md`. G2 drops requirement. |
+| Phase 3 | Light review criteria for remaining work. |
+
+Existing artifacts kept but no longer required for gates. AI suggests downgrade when task is simpler than assessed or user requests simplification.

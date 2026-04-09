@@ -76,10 +76,32 @@ All three must be installed for the full workflow. Each also works independently
 | `/spec-superpowers spec` | OpenSpec specification phase only |
 | `/spec-superpowers plan` | Planning phase only |
 | `/spec-superpowers impl` | Implementation phase only |
-| `/spec-superpowers reset` | Reset complexity choice and state |
-| `/spec-superpowers escalate` | Upgrade Light to Full mid-workflow |
-| `/spec-superpowers simplify` | Downgrade Full to Light mid-workflow |
 | `/spec-superpowers switch` | Switch to a different task workspace |
+| `/spec-superpowers reset` | Clear current task state and start fresh |
+
+#### `/spec-superpowers`
+
+Runs the complete pipeline: Task Router -> Complexity Triage -> Specification -> Planning -> Implementation -> Archive. The AI first asks you to confirm the complexity level (Light or Full), then guides you through each phase with quality gates between them. This is the default entry point for any new feature, bugfix, or refactor.
+
+#### `/spec-superpowers spec`
+
+Runs Phase 1 only (OpenSpec specification). Use when you already have planning files but need to create or revise the spec. Stops at Gate G1 after the spec is validated and confirmed. Does not proceed to planning or implementation.
+
+#### `/spec-superpowers plan`
+
+Runs Phase 2 only (planning). Requires a spec in `openspec/`. Use when you have a confirmed spec and want to generate or revise the task plan. Creates `task_plan.md`, `findings.md`, and `progress.md`. Stops at Gate G2.
+
+#### `/spec-superpowers impl`
+
+Runs Phase 3 + 4 (implementation and archive). Requires `task_plan.md` at project root. Use when spec and plan are ready and you want to start coding. Includes TDD, code review, and the 3-Strike error escalation protocol. After passing Gate G3, automatically archives via OpenSpec.
+
+#### `/spec-superpowers switch`
+
+Switch between task workspaces. Shows a list of existing tasks in `.spec-tasks/` and lets you pick one, or create a new task. The current task's planning files are saved (copy-swap) before switching. Use when you need to pause one task and work on another.
+
+#### `/spec-superpowers reset`
+
+Clears the current task state: removes root planning files (`task_plan.md`, `findings.md`, `progress.md`) and `_active.txt`. The task backup in `.spec-tasks/` is preserved. Use when you want to start the current task over from scratch, or abandon the current workflow and begin fresh.
 
 ### Workflow
 
@@ -118,13 +140,13 @@ Phase 4 -- Archive
 
 ### Complexity Triage
 
-The AI suggests Light or Full; you confirm or override.
+The AI analyzes your task, states its assessment with reasoning, and explicitly asks you to confirm before proceeding. You can confirm or override.
 
 **Light** (all must be true): affects <=2 files, no new public API, no architecture change, estimated <30 min.
 
-**Full**: anything else.
+**Full**: anything else. Auto-Full for architecture changes, new dependencies, DB schema changes, security changes, or >5 files -- the AI will inform you directly without asking.
 
-You can switch mid-workflow with `/spec-superpowers escalate` or `/spec-superpowers simplify`.
+The AI monitors complexity fit throughout the workflow. If the task turns out simpler or more complex than initially assessed, the AI proactively suggests adjusting and waits for your confirmation.
 
 ### Task Workspace
 
@@ -161,7 +183,7 @@ Spec-SuperPower/
       references/
         openspec-workflow.md           OpenSpec integration + validate/archive
         planning-workflow.md           Task workspace + hooks + responsibilities
-        quality-gates.md              G0-G3 criteria + escalate/simplify
+        quality-gates.md              G0-G3 criteria + complexity adjustment
         integration-guide.md          Dependencies + FAQ
       assets/
         templates/

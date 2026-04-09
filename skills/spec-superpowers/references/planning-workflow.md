@@ -1,76 +1,45 @@
 # Planning Workflow
 
-This file describes how spec-superpowers uses planning-with-files for persistent planning (Phase 2), session recovery (Phase 0), and task workspace management (Phase -1).
+How spec-superpowers uses planning-with-files for persistent planning (Phase 2), session recovery (Phase 0), and task workspace management (Phase -1).
 
 ## Task Workspace (Copy-Swap)
 
-### Why
-
-A project has many tasks over its lifetime. Without isolation, planning files from one task pollute the context of the next. The task workspace solves this by giving each task its own directory while keeping root-level files compatible with planning-with-files hooks.
-
-### Directory Structure
+Each task gets isolated planning files. Root files are always **real files** (never symlinks).
 
 ```
 .spec-tasks/
-  _active.txt               (plain text — active task name, e.g. "feat-user-auth")
+  _active.txt               (active task name, e.g. "feat-user-auth")
   feat-user-auth/
-    task_plan.md
-    findings.md
-    progress.md
-  fix-login-bug/
-    ...
+    task_plan.md / findings.md / progress.md
 project root/
   task_plan.md               (real file — copy of active task's version)
-  findings.md
-  progress.md
+  findings.md / progress.md
 ```
 
 ### Copy-Swap Protocol
 
-Root-level planning files are always **real files** (never symlinks). This ensures planning-with-files hooks work natively and uninstalling spec-superpowers leaves everything functional.
+**New task:** ask name (kebab-case) → create `.spec-tasks/<name>/` → write `_active.txt` → pipeline creates root files.
 
-**Creating a new task:**
-1. Ask user for task name (kebab-case, e.g. `feat-user-auth`)
-2. Create `.spec-tasks/<name>/`
-3. Write task name to `.spec-tasks/_active.txt`
-4. Root planning files are created normally by the pipeline
+**Switch task:** copy root files → `.spec-tasks/<old>/` → copy `.spec-tasks/<new>/` → root → update `_active.txt`.
 
-**Switching tasks:**
-1. Copy root `task_plan.md`, `findings.md`, `progress.md` → `.spec-tasks/<old-task>/`
-2. Copy `.spec-tasks/<new-task>/` files → root
-3. Update `.spec-tasks/_active.txt` with new task name
+**Archive (Phase 4):** copy root → `.spec-tasks/<task>/` → delete root files + `_active.txt`.
 
-**Archiving a task (Phase 4):**
-1. Copy root planning files → `.spec-tasks/<task>/`
-2. Delete root `task_plan.md`, `findings.md`, `progress.md`
-3. Delete `.spec-tasks/_active.txt`
-
-### Uninstall Safety
-
-After removing spec-superpowers:
-- Root planning files are plain files → planning-with-files works normally
-- `.spec-tasks/` is a harmless directory of historical backups
-- No symlinks, no Windows permission issues
+**Uninstall safety:** root files are plain → planning-with-files works normally. `.spec-tasks/` = harmless history.
 
 ## Three-File System
 
-Planning produces up to three files in the project root:
+| File | Purpose | Full | Light |
+|------|---------|:----:|:-----:|
+| `task_plan.md` | Numbered task checklist | Yes | Yes |
+| `findings.md` | Decisions, trade-offs, context | Yes | Skip |
+| `progress.md` | Status, verification evidence | Yes | Yes (minimal) |
 
-| File | Purpose | Full Mode | Light Mode |
-|------|---------|:---------:|:----------:|
-| `task_plan.md` | Numbered checklist of tasks | Yes | Yes |
-| `findings.md` | Discoveries, decisions, context gathered during planning | Yes | Skip |
-| `progress.md` | Status updates, completion evidence, verification records | Yes | Yes (minimal) |
+### task_plan.md Format
 
-### task_plan.md
-
-A numbered checklist where each task includes:
-
-- **File paths** — which files will be created or modified
-- **Acceptance criteria** — what "done" looks like for this task
-- **Test strategy** — how to verify the task is complete
-
-Example structure:
+Each task must include:
+- **File paths** — files to create/modify
+- **Acceptance criteria** — what "done" looks like
+- **Test strategy** — how to verify
 
 ```markdown
 - [ ] Task 1: Create user authentication module
@@ -81,138 +50,70 @@ Example structure:
 
 ### findings.md
 
-Records context gathered during planning:
-
-- Architectural decisions and their rationale
-- Existing code patterns discovered
-- Constraints and trade-offs identified
-- External dependencies investigated
+Architectural decisions, existing patterns, constraints, external dependencies investigated.
 
 ### progress.md
 
-Tracks execution status:
+Task completion timestamps, verification evidence, issues + resolutions, gate clearance records. Light mode: minimal — only G3 evidence.
 
-- Task completion timestamps
-- Verification evidence (test results, review outcomes)
-- Issues encountered and resolutions
-- Gate clearance records
+## writing-plans vs planning-with-files
 
-In Light mode, progress.md is minimal — only enough to provide Gate G3 evidence.
+| Aspect | writing-plans (Author) | planning-with-files (Runtime) |
+|--------|----------------------|------------------------------|
+| Focus | Content quality | Persistence + attention management |
+| Output | Plan text content | task_plan.md file + hooks |
+| Criteria | Each step 2-5 min, complete paths, zero placeholders | Files at root, 2-Action Rule for findings |
 
-## writing-plans vs planning-with-files Responsibilities
+Flow: writing-plans generates content → formatted per planning-with-files template → written to root `task_plan.md` → hooks auto-manage.
 
-These two modules have complementary roles:
+## Hook System
 
-| Aspect | writing-plans (Superpowers) | planning-with-files |
-|--------|----------------------------|---------------------|
-| **Role** | Plan "Author" | Plan "Runtime" |
-| **Focus** | Content quality | Persistence + attention management |
-| **Output** | Plan text content | task_plan.md file + hooks |
-| **Criteria** | Each step 2-5 min, complete file paths, zero placeholders | Files at root, 2-Action Rule for findings |
-
-**Flow:**
-1. writing-plans generates plan content (quality standards apply)
-2. Content is formatted per planning-with-files' task_plan.md template
-3. Written directly into root `task_plan.md`
-4. planning-with-files hooks auto-manage attention from this point
-
-All plans live in `.spec-tasks/<task>/task_plan.md` — no separate `docs/superpowers/plans/` needed.
-
-## planning-with-files Hook System
-
-planning-with-files uses hooks to automatically inject planning context into the agent's attention. Understanding why this works is key to the workflow:
+planning-with-files hooks auto-inject planning context:
 
 | Hook | Trigger | Effect |
 |------|---------|--------|
-| `UserPromptSubmit` | Every user message | Reads planning files and injects summary into context |
-| `PreToolUse` | Before each tool call | Checks if current action aligns with the active task |
-| `PostToolUse` | After each tool call | Updates progress tracking |
-| `Stop` | Session ends | Ensures progress is saved |
+| `UserPromptSubmit` | Every user message | Inject planning summary into context |
+| `PreToolUse` | Before tool call | Check action aligns with active task |
+| `PostToolUse` | After tool call | Update progress |
+| `Stop` | Session ends | Save progress |
 
-The **2-Action Rule**: After every 2 view/browser/search operations, findings must be saved to `findings.md` to prevent information loss across multimodal context.
+**2-Action Rule**: After every 2 view/search operations, save findings to `findings.md`.
 
-These hooks activate automatically when planning files exist at the project root — no explicit invocation needed. This is why root-level real files are essential.
+Hooks activate automatically when planning files exist at root — no explicit invocation.
 
-## Full Mode Planning
+## Session Recovery (Phase 0)
 
-Generate all three files. Every task in task_plan.md must have file paths, acceptance criteria, and test strategy. No task may omit any of these three fields.
-
-## Light Mode Planning
-
-Generate `task_plan.md` with the same task annotation requirements. Generate a minimal `progress.md` for G3 evidence tracking. Skip `findings.md`.
-
-## Session Recovery Protocol (Phase 0)
-
-At the start of every invocation, check for an existing session:
-
-### Detection
-
-Look for `task_plan.md` in the project root.
-
-- **Not found** → No prior session. Continue to Phase 1.
-- **Found** → Prior session detected. Execute the 5-Question Reboot Test.
+Check for `task_plan.md` at root:
+- **Not found** → continue to Phase 1
+- **Found** → run 5-Question Reboot Test
 
 ### 5-Question Reboot Test
 
-Read all available planning files and answer these five questions:
-
 | # | Question | Source |
 |---|----------|--------|
-| 1 | Where am I? | Current state of implementation (inspect code + task_plan.md checkboxes) |
-| 2 | Where am I going? | Next unchecked task in task_plan.md |
-| 3 | What's the goal? | Overall objective (from task_plan.md header / spec) |
-| 4 | What did I learn? | Read findings.md (if it exists) |
-| 5 | What did I do? | Read progress.md (if it exists) |
+| 1 | Where am I? | Code state + task_plan.md checkboxes |
+| 2 | Where am I going? | Next unchecked task |
+| 3 | What's the goal? | task_plan.md header / spec |
+| 4 | What did I learn? | findings.md |
+| 5 | What did I do? | progress.md |
 
-### Consistency Check
+All answers must be consistent. Checked tasks ↔ progress.md, goal ↔ spec, findings ↔ code state.
 
-All 5 answers must be consistent with the file contents. Specifically:
+Pass → **G0 clears** → resume from last unchecked task.
+Fail → re-read files, re-test. Still inconsistent → present contradictions to user.
 
-- Checked tasks in task_plan.md should match progress.md entries
-- The overall goal should align with the spec in `openspec/`
-- No contradictions between findings.md context and current code state
-
-### Resume
-
-If the reboot test passes → **Gate G0 clears** → resume from the last unchecked task in task_plan.md.
-
-If the reboot test fails (answers inconsistent or contradictory) → re-read all files and run the test again.
-
-## Writing-Plans Review Loop (Gate G2)
-
-After the plan is written, dispatch a quality review:
+## Gate G2 Review Loop
 
 ```
-Plan written → dispatch plan-document-reviewer subagent → review result
-    ├─ Pass → Gate G2 clears
-    └─ Fail → fix plan gaps → re-review
-               (max 3 rounds)
-               └─ Still failing after 3 rounds → escalate to user
+Plan written → dispatch plan-document-reviewer subagent
+    ├─ Pass → G2 clears
+    └─ Fail → fix gaps → re-review (max 3 rounds → escalate to user)
 ```
 
-The reviewer subagent verifies:
+Reviewer verifies: all tasks annotated, logical ordering, coverage of spec requirements. Uses `writing-plans` skill.
 
-- Every task has file paths, acceptance criteria, and test strategy
-- Tasks are ordered logically (dependencies respected)
-- The plan covers all requirements from the spec
+**G2 passes when:** task_plan.md annotated + findings.md exists (Full) + progress.md exists + review loop passed.
 
-This uses the `writing-plans` skill from Superpowers.
+## Loose Coupling
 
-## Gate G2 Clearance
-
-Gate G2 passes when **all** conditions are met:
-
-1. `task_plan.md` exists with all tasks properly annotated
-2. `findings.md` exists (Full mode only)
-3. `progress.md` exists
-4. The writing-plans review loop has passed
-
-## Important: Loose Coupling
-
-This workflow references only stable interfaces:
-
-- **File conventions**: `task_plan.md`, `findings.md`, `progress.md`
-- **Skill names**: `planning-with-files`, `writing-plans`
-- **Directory**: `.spec-tasks/` (managed by spec-superpowers orchestration only)
-
-Do NOT inline the internal logic of planning-with-files or Superpowers' writing-plans skill. If those modules update their internals, this workflow remains valid as long as the file conventions and skill names are preserved.
+References only: `task_plan.md`, `findings.md`, `progress.md` file conventions, `planning-with-files` and `writing-plans` skill names, `.spec-tasks/` directory.

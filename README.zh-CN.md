@@ -76,10 +76,32 @@ rm -rf .spec-tasks/
 | `/spec-superpowers spec` | 仅执行 OpenSpec 规范阶段 |
 | `/spec-superpowers plan` | 仅执行计划阶段 |
 | `/spec-superpowers impl` | 仅执行实现阶段 |
-| `/spec-superpowers reset` | 重置复杂度选择和状态 |
-| `/spec-superpowers escalate` | 工作流中途从 Light 升级为 Full |
-| `/spec-superpowers simplify` | 工作流中途从 Full 降级为 Light |
 | `/spec-superpowers switch` | 切换到其他任务工作区 |
+| `/spec-superpowers reset` | 清除当前任务状态，重新开始 |
+
+#### `/spec-superpowers`
+
+执行完整流水线：任务路由 → 复杂度分级 → 规范 → 计划 → 实现 → 归档。AI 会先分析任务并明确询问你确认复杂度级别（Light 或 Full），然后逐阶段引导，每个阶段之间都有质量门把关。这是新功能、Bug 修复、重构的默认入口。
+
+#### `/spec-superpowers spec`
+
+仅执行 Phase 1（OpenSpec 规范阶段）。适用于已有计划文件但需要创建或修订规范的场景。在规范通过验证并获得确认后停止于 Gate G1，不会进入计划或实现阶段。
+
+#### `/spec-superpowers plan`
+
+仅执行 Phase 2（计划阶段）。前提：`openspec/` 中已有确认的规范。适用于规范已就绪、需要生成或修订任务计划的场景。生成 `task_plan.md`、`findings.md`、`progress.md`。停止于 Gate G2。
+
+#### `/spec-superpowers impl`
+
+执行 Phase 3 + 4（实现和归档）。前提：项目根目录存在 `task_plan.md`。适用于规范和计划都已就绪、准备开始编码的场景。包含 TDD、代码审查和 3-Strike 错误升级协议。通过 Gate G3 后，自动通过 OpenSpec 归档。
+
+#### `/spec-superpowers switch`
+
+在任务工作区之间切换。显示 `.spec-tasks/` 中的现有任务列表，可选择切换或创建新任务。切换前会自动保存当前任务的计划文件（copy-swap）。适用于需要暂停当前任务、转去处理其他任务的场景。
+
+#### `/spec-superpowers reset`
+
+清除当前任务状态：删除根目录的计划文件（`task_plan.md`、`findings.md`、`progress.md`）和 `_active.txt`。`.spec-tasks/` 中的任务备份会保留。适用于想从头重新开始当前任务、或放弃当前工作流重新来过的场景。
 
 ### 工作流程
 
@@ -118,13 +140,13 @@ Phase 4 — 归档
 
 ### 复杂度分级
 
-AI 建议 Light 或 Full，由你确认或覆盖。
+AI 分析任务后会说明理由，并明确询问你确认复杂度级别，你可以确认或覆盖。
 
 **Light**（必须全部满足）：影响 ≤2 个文件、无新公共 API、无架构变更、预估 <30 分钟。
 
-**Full**：其他所有情况。
+**Full**：其他所有情况。架构变更、新外部依赖、数据库 schema 变更、安全相关变更、影响 >5 个文件时，AI 会直接告知使用 Full 模式并说明原因，不会询问是否用 Light。
 
-工作流中途可通过 `/spec-superpowers escalate` 或 `/spec-superpowers simplify` 切换。
+AI 会在整个工作流中持续监测复杂度匹配度。如果任务比初始评估更简单或更复杂，AI 会主动建议调整并等待你确认。
 
 ### 任务工作区
 
@@ -161,7 +183,7 @@ Spec-SuperPower/
       references/
         openspec-workflow.md           OpenSpec 集成 + validate/archive
         planning-workflow.md           任务工作区 + hooks + 职责划分
-        quality-gates.md               G0-G3 标准 + escalate/simplify
+        quality-gates.md               G0-G3 标准 + 复杂度调整
         integration-guide.md           依赖 + FAQ
       assets/
         templates/

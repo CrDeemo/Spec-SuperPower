@@ -214,19 +214,16 @@ check(
 # ---------------------------------------------------------------------------
 # Category 11 — v2 features: OpenSpec validate/archive + escalate/simplify
 # ---------------------------------------------------------------------------
-category("Category 11: v2 features — validate/archive/escalate/simplify")
+category("Category 11: v2 features — validate/archive/complexity adjustment")
 
 check(
     "SKILL.md mentions openspec validate",
     "openspec validate" in lower_text or "validate" in lower_text,
 )
 check(
-    "SKILL.md mentions escalate command",
-    "/spec-superpowers escalate" in skill_text,
-)
-check(
-    "SKILL.md mentions simplify command",
-    "/spec-superpowers simplify" in skill_text,
+    "SKILL.md mentions complexity adjustment (light→full or full→light)",
+    ("light" in lower_text and "full" in lower_text)
+    and ("upgrade" in lower_text or "downgrade" in lower_text or "adjustment" in lower_text),
 )
 
 openspec_wf = refs_dir / "openspec-workflow.md"
@@ -255,8 +252,9 @@ check(
     "openspec validate" in qg_lower,
 )
 check(
-    "quality-gates.md mentions escalate/simplify transitions",
-    "escalate" in qg_lower and "simplify" in qg_lower,
+    "quality-gates.md mentions complexity adjustment transitions",
+    ("light" in qg_lower and "full" in qg_lower)
+    and ("upgrade" in qg_lower or "downgrade" in qg_lower or "adjustment" in qg_lower),
 )
 
 # ---------------------------------------------------------------------------

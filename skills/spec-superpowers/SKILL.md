@@ -1,14 +1,11 @@
 ---
 name: spec-superpowers
 description: >
-  Orchestrates OpenSpec + planning-with-files + Superpowers into a unified spec-driven
-  development workflow. Automatically triages complexity (light/full), recovers session
-  context, manages task workspaces, and applies quality gates (G0-G3) with automated review
-  loops at every stage. Use this skill when the user says "/spec-superpowers", "spec first",
-  or starts any feature, bugfix, or refactor. Activate for any non-trivial code change to
-  prevent skipping the design phase. Loosely coupled — uninstalling does not affect
-  independent modules. Orchestrates: OpenSpec (OPSX) + planning-with-files + Superpowers
-  (TDD, code review, verification, debugging, spec/plan review loops).
+  Orchestrates OpenSpec + planning-with-files + Superpowers into a spec-driven development
+  workflow with complexity triage (light/full), task workspaces, session recovery, and quality
+  gates (G0-G3). Use when the user says "/spec-superpowers", "spec first", or starts any
+  non-trivial feature, bugfix, or refactor. Loosely coupled — uninstalling does not affect
+  independent modules.
 ---
 
 # Spec-Superpowers Orchestrator
@@ -23,73 +20,71 @@ Every feature, bugfix, and refactor goes through a specification phase first.
 | `/spec-superpowers spec` | OpenSpec specification phase only |
 | `/spec-superpowers plan` | planning-with-files planning phase only |
 | `/spec-superpowers impl` | Superpowers implementation phase only |
-| `/spec-superpowers reset` | Reset complexity choice and state |
-| `/spec-superpowers escalate` | Light → Full mid-workflow upgrade |
-| `/spec-superpowers simplify` | Full → Light mid-workflow downgrade |
 | `/spec-superpowers switch` | Switch to a different task workspace |
+| `/spec-superpowers reset` | Clear current task state and start fresh |
 
 ## Step 1: Dependency Check
 
-Verify all three modules are available before proceeding. If any is missing, show install command and stop. Details: [references/integration-guide.md](references/integration-guide.md)
+Verify all three modules before proceeding. Missing → show install command → stop.
+Details: [references/integration-guide.md](references/integration-guide.md)
 
 ## Step 2: Task Router (Phase -1)
 
 Check `.spec-tasks/_active.txt`:
 - **Not found** → ask task name → create `.spec-tasks/<name>/` + `_active.txt` → proceed
-- **Found** → read active task + root `task_plan.md` summary → ask user: continue / archive & new / switch existing
+- **Found** → read active task summary → ask user: continue / archive & new / switch
 
-On switch/new: copy-swap root planning files with `.spec-tasks/` (real files, no symlinks). Details: [references/planning-workflow.md](references/planning-workflow.md)
+Copy-swap root planning files with `.spec-tasks/` (real files, no symlinks).
+Details: [references/planning-workflow.md](references/planning-workflow.md)
 
 ## Step 3: Triage Complexity
 
-**MANDATORY**: AI must explicitly ask the user to confirm the complexity level before proceeding. Do NOT auto-select.
+**MANDATORY** — AI must not auto-select. Follow this flow:
 
-| Level | When (ALL must be true) | Pipeline |
-|-------|-------------------------|----------|
-| **Light** | ≤2 files AND no new public API AND no architecture change AND <30 min estimate | Simplified Phase 1-4 |
-| **Full** | ANY of the above is false | All phases with `/opsx:explore` |
-
-**Auto-Full triggers** (if ANY is true, must be Full — no user override to Light):
-- Architecture change (migration, new service, restructure)
-- New external dependency or integration
-- Database schema change
-- Security-related change
-- Affects >5 files
-
-**Flow**:
 1. AI analyzes the task and states its assessment with reasoning
 2. AI explicitly asks: "建议 [Light/Full] 模式，确认吗？或者你想选择另一个？"
 3. User confirms or overrides
 4. Only then proceed to Phase 0/1
 
-Mid-workflow: `/spec-superpowers escalate` (Light→Full) or `/spec-superpowers simplify` (Full→Light).
+| Level | Criteria (ALL true) | Pipeline |
+|-------|---------------------|----------|
+| **Light** | ≤2 files, no new public API, no architecture change, <30 min | Simplified Phase 1-4 |
+| **Full** | ANY criterion above is false | All phases with `/opsx:explore` |
+
+Auto-Full (no override): architecture change, new external dependency, DB schema change, security change, >5 files. In these cases, AI does not ask whether to use Light — directly inform the user that Full mode will be used and explain why.
+
+### Mid-Workflow Complexity Adjustment
+
+AI monitors complexity fit throughout the workflow:
+- **Light → Full**: If AI detects the task exceeds Light criteria (e.g., more files than expected, new API surface emerges), it proactively suggests upgrading to Full and waits for user confirmation.
+- **Full → Light**: If AI detects the task is simpler than initially assessed, or the user requests simplification, it suggests downgrading.
+
+Adjustment rules: [references/quality-gates.md](references/quality-gates.md)
 
 ## Step 4: Execute the Pipeline
 
-**Phase 0 — Session Recovery** (automatic)
-If `task_plan.md` exists, run the 5-Question Reboot Test and resume from checkpoint.
-**Gate G0**: Reboot test consistent + no context contradictions.
-Details: [references/planning-workflow.md](references/planning-workflow.md)
+**Phase 0 — Session Recovery** (auto)
+`task_plan.md` exists → 5-Question Reboot Test → resume from checkpoint.
+**Gate G0**: Reboot test consistent + no contradictions.
 
 **Phase 1 — Specification** (OpenSpec)
 Full: `/opsx:explore` → `/opsx:propose` → `openspec validate` → user confirms.
 Light: `/opsx:propose` → `openspec validate` → user confirms.
 **Gate G1**: Validate passed + user confirmed + brainstorming review loop passed.
-Details: [references/openspec-workflow.md](references/openspec-workflow.md)
 
 **Phase 2 — Persistent Planning** (writing-plans → planning-with-files)
-writing-plans authors plan content → written into task_plan.md (planning-with-files format).
-planning-with-files hooks auto-manage attention from this point.
-Generate task_plan.md / findings.md / progress.md. Each task: file paths + acceptance criteria + test strategy.
-**Gate G2**: Three files ready + plan review loop passed.
-Details: [references/planning-workflow.md](references/planning-workflow.md)
+writing-plans authors content → task_plan.md / findings.md / progress.md.
+Each task: file paths + acceptance criteria + test strategy.
+**Gate G2**: Files ready + plan review loop passed.
 
 **Phase 3 — Implementation** (Superpowers)
-Subagent-Driven or Executing-Plans. TDD throughout. Errors: 3-Strike → systematic-debugging.
-**Gate G3**: All tests pass + review passed + evidence in progress.md.
+Subagent-Driven or Executing-Plans. TDD throughout. 3-Strike → systematic-debugging.
+**Gate G3**: All tests pass + two-stage review + evidence in progress.md.
 
 **Phase 4 — Archive**
-`finishing-a-development-branch` → update checkboxes → `openspec archive <change>` → copy-swap planning files back to `.spec-tasks/<task>/` → clean root.
+`finishing-a-development-branch` → `openspec archive <change>` → copy-swap back to `.spec-tasks/<task>/` → clean root.
+
+Details: [references/openspec-workflow.md](references/openspec-workflow.md) | [references/quality-gates.md](references/quality-gates.md) | [references/planning-workflow.md](references/planning-workflow.md)
 
 ## Sub-command Jump
 
@@ -99,7 +94,8 @@ Subagent-Driven or Executing-Plans. TDD throughout. Errors: 3-Strike → systema
 
 ## Quality Gates
 
-Hard stops — nothing proceeds until all checks pass. Full criteria: [references/quality-gates.md](references/quality-gates.md)
+Hard stops — nothing proceeds until all checks pass.
+Full criteria: [references/quality-gates.md](references/quality-gates.md)
 
 ## Anti-Rush Protection
 
