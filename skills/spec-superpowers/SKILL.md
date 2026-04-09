@@ -49,7 +49,7 @@ Details: [references/planning-workflow.md](references/planning-workflow.md)
 | Level | Criteria (ALL true) | Pipeline |
 |-------|---------------------|----------|
 | **Light** | ≤2 files, no new public API, no architecture change, <30 min | Simplified Phase 1-4 |
-| **Full** | ANY criterion above is false | All phases with `/opsx:explore` |
+| **Full** | ANY criterion above is false | All phases with brainstorming |
 
 Auto-Full (no override): architecture change, new external dependency, DB schema change, security change, >5 files. In these cases, AI does not ask whether to use Light — directly inform the user that Full mode will be used and explain why.
 
@@ -67,10 +67,10 @@ Adjustment rules: [references/quality-gates.md](references/quality-gates.md)
 `task_plan.md` exists → 5-Question Reboot Test → resume from checkpoint.
 **Gate G0**: Reboot test consistent + no contradictions.
 
-**Phase 1 — Specification** (OpenSpec)
-Full: `/opsx:explore` → `/opsx:propose` → `openspec validate` → user confirms.
-Light: `/opsx:propose` → `openspec validate` → user confirms.
-**Gate G1**: Validate passed + user confirmed + brainstorming review loop passed.
+**Phase 1 — Specification** (brainstorming → OpenSpec)
+Full: `brainstorming` (interactive design) → `/opsx:propose` → `openspec validate` → user confirms.
+Light: `brainstorming` (shortened: 2-3 approaches + user pick) → `/opsx:propose` → `openspec validate` → user confirms.
+**Gate G1**: Design doc approved + validate passed + user confirmed.
 
 **Phase 2 — Persistent Planning** (writing-plans → planning-with-files)
 writing-plans authors content → task_plan.md / findings.md / progress.md.

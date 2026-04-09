@@ -81,11 +81,11 @@ rm -rf .spec-tasks/
 
 #### `/spec-superpowers`
 
-执行完整流水线：任务路由 → 复杂度分级 → 规范 → 计划 → 实现 → 归档。AI 会先分析任务并明确询问你确认复杂度级别（Light 或 Full），然后逐阶段引导，每个阶段之间都有质量门把关。这是新功能、Bug 修复、重构的默认入口。
+执行完整流水线：任务路由 → 复杂度分级 → 规范（brainstorming + OpenSpec）→ 计划 → 实现 → 归档。AI 会先分析任务并明确询问你确认复杂度级别（Light 或 Full），然后使用 brainstorming 技能与你交互式探索需求，再将设计形式化为规范。每个阶段之间都有质量门把关。这是新功能、Bug 修复、重构的默认入口。
 
 #### `/spec-superpowers spec`
 
-仅执行 Phase 1（OpenSpec 规范阶段）。适用于已有计划文件但需要创建或修订规范的场景。在规范通过验证并获得确认后停止于 Gate G1，不会进入计划或实现阶段。
+仅执行 Phase 1（brainstorming + OpenSpec 规范阶段）。AI 会先使用 brainstorming 技能（Superpowers）与你交互式探索问题空间、提出多个方案对比并获得你的设计确认，然后通过 OpenSpec 将确认的设计形式化。在规范通过验证并获得确认后停止于 Gate G1，不会进入计划或实现阶段。
 
 #### `/spec-superpowers plan`
 
@@ -118,10 +118,10 @@ Phase 0 — 会话恢复（自动）
     — 质量门 G0 —
     │
     ▼
-Phase 1 — 规范（OpenSpec）
-    Full: /opsx:explore → /opsx:propose → openspec validate → 用户确认
-    Light: /opsx:propose → openspec validate → 用户确认
-    — 质量门 G1: validate 通过 + 用户确认 + 审查循环 —
+Phase 1 — 规范（brainstorming → OpenSpec）
+    Full: brainstorming（交互式设计）→ /opsx:propose → openspec validate → 用户确认
+    Light: brainstorming（精简版）→ /opsx:propose → openspec validate → 用户确认
+    — 质量门 G1: 设计方案确认 + validate 通过 + 用户确认 —
     │
     ▼
 Phase 2 — 计划（writing-plans → planning-with-files）

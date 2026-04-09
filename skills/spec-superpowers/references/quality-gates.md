@@ -19,15 +19,15 @@ Consistency checks: checked tasks ↔ progress.md, next task is logical continua
 | Field | Value |
 |-------|-------|
 | **Position** | Phase 1 → Phase 2 |
-| **Pass** | `openspec validate` passed + user confirmed + brainstorming review loop passed |
+| **Pass** | Brainstorming design approved + `openspec validate` passed + user confirmed final spec |
 | **Fail** | Fix validation → revise spec → resubmit for confirmation |
 
 Three conditions (all required):
-1. `openspec validate --change <name>` passes
-2. User said "confirmed" / "approved" / "looks good" / "lgtm" (ambiguous ≠ confirmed)
-3. Spec-document-reviewer subagent approved (max 3 rounds)
+1. Brainstorming design document approved by user (via `brainstorming` skill)
+2. `openspec validate --change <name>` passes
+3. User said "confirmed" / "approved" / "looks good" / "lgtm" for the final spec (ambiguous ≠ confirmed)
 
-Failure path: validate fails → fix structural issues. Reviewer rejects → fix and resubmit. User requests changes → revise → re-validate → re-review. 3 rounds still failing → escalate to user.
+Failure path: brainstorming design rejected → iterate with user. Validate fails → fix structural issues. User requests changes → revise → re-validate. 3 rounds still failing → escalate to user.
 
 ---
 
@@ -73,7 +73,7 @@ Phase complete → dispatch reviewer subagent → result
 
 | Gate | Reviewer | Skill |
 |------|----------|-------|
-| G1 | spec-document-reviewer | `brainstorming` |
+| G1 | brainstorming design review | `brainstorming` (Superpowers) |
 | G2 | plan-document-reviewer | `writing-plans` |
 | G3 | code-reviewer (two-stage) | `requesting-code-review` |
 
@@ -100,7 +100,7 @@ AI monitors complexity fit throughout the workflow and proactively suggests adju
 
 | Current Phase | Action |
 |---------------|--------|
-| Phase 1 | Add `/opsx:explore`. Re-run validate at G1. |
+| Phase 1 | Add full brainstorming (deep exploration). Re-run validate at G1. |
 | Phase 2 | Generate `findings.md`. G2 requires all three files. |
 | Phase 3 | Full review criteria for remaining work. |
 
@@ -110,7 +110,7 @@ Prior artifacts preserved — no rework. AI suggests upgrade when task exceeds L
 
 | Current Phase | Action |
 |---------------|--------|
-| Phase 1 | Skip remaining `/opsx:explore`. |
+| Phase 1 | Skip deep brainstorming exploration. |
 | Phase 2 | Stop updating `findings.md`. G2 drops requirement. |
 | Phase 3 | Light review criteria for remaining work. |
 

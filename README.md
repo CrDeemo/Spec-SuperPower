@@ -81,11 +81,11 @@ All three must be installed for the full workflow. Each also works independently
 
 #### `/spec-superpowers`
 
-Runs the complete pipeline: Task Router -> Complexity Triage -> Specification -> Planning -> Implementation -> Archive. The AI first asks you to confirm the complexity level (Light or Full), then guides you through each phase with quality gates between them. This is the default entry point for any new feature, bugfix, or refactor.
+Runs the complete pipeline: Task Router -> Complexity Triage -> Specification (brainstorming + OpenSpec) -> Planning -> Implementation -> Archive. The AI first asks you to confirm the complexity level (Light or Full), then uses the brainstorming skill to interactively explore your requirements before formalizing the spec. Quality gates between each phase ensure nothing slips through. This is the default entry point for any new feature, bugfix, or refactor.
 
 #### `/spec-superpowers spec`
 
-Runs Phase 1 only (OpenSpec specification). Use when you already have planning files but need to create or revise the spec. Stops at Gate G1 after the spec is validated and confirmed. Does not proceed to planning or implementation.
+Runs Phase 1 only (brainstorming + OpenSpec specification). The AI first uses the brainstorming skill (Superpowers) to interactively explore the problem space, propose multiple approaches, and get your design approval. Then formalizes the approved design via OpenSpec. Stops at Gate G1 after the spec is validated and confirmed. Does not proceed to planning or implementation.
 
 #### `/spec-superpowers plan`
 
@@ -118,10 +118,10 @@ Phase 0 -- Session Recovery (auto)
     -- Gate G0 --
     |
     v
-Phase 1 -- Specification (OpenSpec)
-    Full: /opsx:explore -> /opsx:propose -> openspec validate -> user confirms
-    Light: /opsx:propose -> openspec validate -> user confirms
-    -- Gate G1: validate + confirmed + review loop --
+Phase 1 -- Specification (brainstorming -> OpenSpec)
+    Full: brainstorming (interactive design) -> /opsx:propose -> openspec validate -> user confirms
+    Light: brainstorming (shortened) -> /opsx:propose -> openspec validate -> user confirms
+    -- Gate G1: design approved + validate passed + user confirmed --
     |
     v
 Phase 2 -- Planning (writing-plans -> planning-with-files)

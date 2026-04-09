@@ -1,6 +1,6 @@
 # OpenSpec Workflow
 
-How spec-superpowers invokes OpenSpec for specification (Phase 1) and archiving (Phase 4).
+How spec-superpowers invokes brainstorming (Superpowers) + OpenSpec for specification (Phase 1) and archiving (Phase 4).
 
 ## Spec Artifact Location
 
@@ -17,21 +17,21 @@ Task name from `.spec-tasks/_active.txt` = change name. Managed natively by Open
 ## Full Mode Flow
 
 ```
-/opsx:explore → /opsx:propose → openspec validate → User Confirmation
+brainstorming (interactive design) → /opsx:propose → openspec validate → User Confirmation
 ```
 
-1. **Explore** — `/opsx:explore` to investigate problem space and brainstorm approaches
-2. **Propose** — `/opsx:propose` to create change proposal + spec artifacts into `openspec/`
+1. **Brainstorm** — Read & invoke the `brainstorming` skill (Superpowers). Explore context, ask clarifying questions, propose 2-3 approaches with trade-offs, present recommended design, wait for user approval. Output: design document.
+2. **Propose** — `/opsx:propose` to formalize the approved design into an OpenSpec change proposal + spec artifacts in `openspec/`
 3. **Validate** — `openspec validate --change <name>` for structural completeness. Fix errors first.
-4. **Confirm** — Present spec to user, wait for explicit confirmation
+4. **Confirm** — Present final spec to user, wait for explicit confirmation
 
 ## Light Mode Flow
 
 ```
-/opsx:propose → openspec validate → User Confirmation
+brainstorming (shortened) → /opsx:propose → openspec validate → User Confirmation
 ```
 
-Skip explore. Steps 2-4 same as Full mode.
+Shortened brainstorming: present 2-3 approaches, user picks one, proceed. Skip deep context exploration. Steps 2-4 same as Full mode.
 
 ## Spec Confirmation Protocol
 
@@ -47,14 +47,14 @@ Spec written → openspec validate → dispatch spec-document-reviewer subagent
     └─ Fail → revise → re-validate → re-review (max 3 rounds → escalate to user)
 ```
 
-Reviewer uses the `brainstorming` skill to evaluate completeness, clarity, and feasibility.
+Reviewer evaluates completeness, clarity, and feasibility against the brainstorming design document.
 
 ## Gate G1 Clearance
 
 All three required:
-1. `openspec validate --change <name>` passes
-2. Brainstorming review loop passed
-3. User explicitly confirmed
+1. Brainstorming design document approved by user
+2. `openspec validate --change <name>` passes
+3. User explicitly confirmed final spec
 
 On user change request: revise → re-validate → re-review → resubmit for confirmation.
 
@@ -70,4 +70,4 @@ Merges change delta into main specs. Then: copy root planning files to `.spec-ta
 
 ## Loose Coupling
 
-References only stable interfaces: `/opsx:explore`, `/opsx:propose`, `/opsx:verify`, and `openspec/` directory convention. No internal CLI parameters or config formats.
+References only stable interfaces: `brainstorming` skill (Superpowers), `/opsx:propose`, `/opsx:verify`, and `openspec/` directory convention. No internal CLI parameters or config formats.
