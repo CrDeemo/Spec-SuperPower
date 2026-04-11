@@ -15,7 +15,7 @@ fi
 # 2. Install spec-superpowers skill (project-level)
 echo "[2/5] Installing spec-superpowers skill..."
 if command -v npx >/dev/null 2>&1; then
-  npx skills add CrDeemo/Spec-SuperPower --skill spec-superpowers --agent cursor --yes || echo " ⚠ Skill install failed. Try manually: npx skills add CrDeemo/Spec-SuperPower --skill spec-superpowers --agent cursor --yes"
+  npx skills add CrDeemo/Spec-SuperPower --skill ssp --agent cursor --yes || echo " ⚠ Skill install failed. Try manually: npx skills add CrDeemo/Spec-SuperPower --skill ssp --agent cursor --yes"
 else
   echo " ⚠ npx not found. Please install Node.js first: https://nodejs.org/"
 fi
@@ -83,4 +83,4 @@ GIBLOCK
 fi
 
 echo ""
-echo "=== Install complete. Restart Cursor, then type /spec-superpowers ==="
+echo "=== Install complete. Restart Cursor, then type /ssp ==="

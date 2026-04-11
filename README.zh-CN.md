@@ -27,7 +27,7 @@ irm https://raw.githubusercontent.com/CrDeemo/Spec-SuperPower/main/install.ps1 |
 npm install -g @fission-ai/openspec@latest
 
 # 2. 安装 spec-superpowers skill（项目级）
-npx skills add CrDeemo/Spec-SuperPower --skill spec-superpowers --agent cursor --yes
+npx skills add CrDeemo/Spec-SuperPower --skill ssp --agent cursor --yes
 
 # 3. 安装 planning-with-files skill（项目级）
 npx skills add OthmanAdi/planning-with-files --agent cursor --yes
@@ -45,7 +45,7 @@ cp .cursor/skills/spec-superpowers/.cursor/00-spec-superpowers.mdc .cursor/rules
 
 ```bash
 # 仅移除 spec-superpowers（其他模块正常运行）
-npx skills remove spec-superpowers
+npx skills remove ssp
 
 # 移除 gatekeeper 规则（如果之前复制过）
 rm .cursor/rules/00-spec-superpowers.mdc
@@ -215,7 +215,7 @@ Spec-SuperPower/
 | Superpowers | Cursor 插件自动更新 | 无 |
 | OpenSpec | `npm update -g @fission-ai/openspec` | 无 |
 | planning-with-files | `npx skills update` | 无 |
-| spec-superpowers | `npx skills add CrDeemo/Spec-SuperPower --skill spec-superpowers --agent cursor --yes` | 仅编排层 |
+| spec-superpowers | `npx skills add CrDeemo/Spec-SuperPower --skill ssp --agent cursor --yes` | 仅编排层 |
 
 ---
 

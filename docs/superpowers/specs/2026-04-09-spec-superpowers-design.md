@@ -267,10 +267,10 @@ Any missing → show install command → stop workflow
 
 ```bash
 # Interactive
-npx skills add CrDeemo/spec-superpowers
+npx skills add CrDeemo/Spec-SuperPower
 
 # Non-interactive (CI / new project)
-npx skills add CrDeemo/spec-superpowers --skill spec-superpowers --agent cursor --global --yes
+npx skills add CrDeemo/Spec-SuperPower --skill ssp --agent cursor --global --yes
 
 # Full setup (includes OpenSpec CLI + dependency prompts)
 chmod +x install.sh && ./install.sh
@@ -279,7 +279,7 @@ chmod +x install.sh && ./install.sh
 ### Uninstall
 
 ```bash
-npx skills remove spec-superpowers
+npx skills remove ssp
 ```
 
 ### Module Independent Upgrade

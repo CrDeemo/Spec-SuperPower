@@ -16,8 +16,8 @@ if (Get-Command npm -ErrorAction SilentlyContinue) {
 # 2. Install spec-superpowers skill (project-level)
 Write-Host "[2/5] Installing spec-superpowers skill..."
 if (Get-Command npx -ErrorAction SilentlyContinue) {
-    try { npx skills add CrDeemo/Spec-SuperPower --skill spec-superpowers --agent cursor --yes }
-    catch { Write-Host " Warning: Skill install failed. Try manually: npx skills add CrDeemo/Spec-SuperPower --skill spec-superpowers --agent cursor --yes" -ForegroundColor Yellow }
+    try { npx skills add CrDeemo/Spec-SuperPower --skill ssp --agent cursor --yes }
+    catch { Write-Host " Warning: Skill install failed. Try manually: npx skills add CrDeemo/Spec-SuperPower --skill ssp --agent cursor --yes" -ForegroundColor Yellow }
 } else {
     Write-Host " Warning: npx not found. Please install Node.js first: https://nodejs.org/" -ForegroundColor Yellow
 }
@@ -79,4 +79,4 @@ if (Test-Path ".gitignore") {
 }
 
 Write-Host ""
-Write-Host "=== Install complete. Restart Cursor, then type /spec-superpowers ===" -ForegroundColor Cyan
+Write-Host "=== Install complete. Restart Cursor, then type /ssp ===" -ForegroundColor Cyan

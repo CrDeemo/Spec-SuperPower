@@ -69,7 +69,7 @@ npx skills add CrDeemo/spec-superpowers
 Non-interactive install (for scripts/CI):
 
 ```bash
-npx skills add CrDeemo/spec-superpowers --skill spec-superpowers --agent cursor --global --yes
+npx skills add CrDeemo/Spec-SuperPower --skill ssp --agent cursor --global --yes
 ```
 
 ## Dependency Skills
@@ -446,7 +446,7 @@ fi
 # 2. Install this Skill
 echo "[2/3] Installing spec-superpowers Skill..."
 if command -v npx >/dev/null 2>&1; then
-  npx skills add CrDeemo/spec-superpowers --skill spec-superpowers --agent cursor --global --yes || echo " ⚠ Skill install failed. Try manually: npx skills add CrDeemo/spec-superpowers"
+  npx skills add CrDeemo/Spec-SuperPower --skill ssp --agent cursor --global --yes || echo " ⚠ Skill install failed. Try manually: npx skills add CrDeemo/spec-superpowers"
 else
   echo " ⚠ npx not found. Please install Node.js first: https://nodejs.org/"
 fi

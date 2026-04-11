@@ -27,7 +27,7 @@ Or step by step:
 npm install -g @fission-ai/openspec@latest
 
 # 2. Install spec-superpowers skill (project-level)
-npx skills add CrDeemo/Spec-SuperPower --skill spec-superpowers --agent cursor --yes
+npx skills add CrDeemo/Spec-SuperPower --skill ssp --agent cursor --yes
 
 # 3. Install planning-with-files skill (project-level)
 npx skills add OthmanAdi/planning-with-files --agent cursor --yes
@@ -45,7 +45,7 @@ After installation, restart Cursor and type `/ssp` in Agent chat.
 
 ```bash
 # Remove spec-superpowers only (other modules keep working)
-npx skills remove spec-superpowers
+npx skills remove ssp
 
 # Remove gatekeeper rule (if copied)
 rm .cursor/rules/00-spec-superpowers.mdc
@@ -214,7 +214,7 @@ Spec-SuperPower/
 | Superpowers | Cursor plugin auto-update | None |
 | OpenSpec | `npm update -g @fission-ai/openspec` | None |
 | planning-with-files | `npx skills update` | None |
-| spec-superpowers | `npx skills add CrDeemo/Spec-SuperPower --skill spec-superpowers --agent cursor --yes` | Orchestration only |
+| spec-superpowers | `npx skills add CrDeemo/Spec-SuperPower --skill ssp --agent cursor --yes` | Orchestration only |
 
 ---
 
