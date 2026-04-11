@@ -1,13 +1,19 @@
 # spec-superpowers Design Spec
 
-A Cursor Agent Skill that orchestrates OpenSpec + planning-with-files + Superpowers into a unified spec-driven development workflow. Loosely coupled — uninstalling this skill does not affect the independent modules.
+A Cursor Agent Skill that orchestrates OpenSpec + planning-with-files + Superpowers into a dialogue-first, spec-driven development workflow. Loosely coupled — uninstalling this skill does not affect the independent modules.
 
 **Repo**: `CrDeemo/spec-superpowers`
 **Reference**: [zxzvsdcj/spec-first-superpowers](https://github.com/zxzvsdcj/spec-first-superpowers)
 
 ---
 
-## 1. Project Structure
+## 1. Core Philosophy: Dialogue First
+
+The fundamental principle: **understand before you formalize, formalize before you build**.
+
+Brainstorming (dialogue exploration) is the soul of the workflow. It is NEVER shortened for Light mode — understanding the user has no abbreviated version. Complexity triage happens AFTER brainstorming, not before, because the conversation reveals what the task actually requires.
+
+## 2. Project Structure
 
 ```
 spec-superpowers/                              # GitHub: CrDeemo/spec-superpowers
@@ -23,7 +29,7 @@ spec-superpowers/                              # GitHub: CrDeemo/spec-superpower
 │           └── templates/
 │               └── constitution.md            # Project constitution template
 ├── .cursor/
-│   └── 00-spec-superpowers.mdc                # Always-on gatekeeper rule
+│   └── 00-spec-superpowers.mdc                # Always-on gentle guide rule
 ├── install.sh                                 # macOS/Linux one-click install
 ├── install.ps1                                # Windows one-click install
 ├── test_skill.py                              # Validation script (~60 checks)
@@ -32,27 +38,36 @@ spec-superpowers/                              # GitHub: CrDeemo/spec-superpower
 
 `npx skills add` discovers `skills/` and installs only its contents. Root-level dev files (test_skill.py, install scripts) are not included.
 
-## 2. Command System
+## 3. Command System
 
 | Command | Effect |
 |---------|--------|
-| `/spec-superpowers` | Smart full workflow (auto complexity) |
-| `/spec-superpowers spec` | OpenSpec specification phase only |
-| `/spec-superpowers plan` | planning-with-files planning phase only |
-| `/spec-superpowers impl` | Superpowers implementation phase only |
-| `/spec-superpowers reset` | Reset complexity choice and state |
-| `/spec-superpowers escalate` | Light → Full mid-workflow upgrade |
-| `/spec-superpowers simplify` | Full → Light mid-workflow downgrade |
-| `/spec-superpowers switch` | Switch to a different task workspace |
+| `/ssp` | Full workflow — dialogue-first, auto complexity |
+| `/ssp:design` | Dialogue exploration + OpenSpec specification only |
+| `/ssp:plan` | Planning phase only |
+| `/ssp:impl` | Implementation phase only |
+| `/ssp:switch` | Switch to a different task workspace |
+| `/ssp:clean` | Clean up archived tasks and stale workflow artifacts |
+| `/ssp:reset` | Clear current task state and start fresh |
 
-## 3. Complexity Triage
+## 4. Complexity Triage (Post-Dialogue)
 
-Two levels. AI suggests; user confirms or overrides.
+Three levels. Determined AFTER brainstorming, not before. AI suggests based on conversation outcome; user confirms or overrides.
 
 | Level | Trigger signals | Pipeline |
 |-------|----------------|----------|
-| **Light** | Single-file change, bugfix, config, typo | Phase 1 simplified (`/opsx:propose`) → Phase 2 simplified (task_plan.md + minimal progress.md) → Phase 3 → Phase 4 |
-| **Full** | New feature, refactor, multi-file, architecture | Phase 0-4 all executed |
+| **Quick** | Single-file internal change, <15 min | Inline spec → implement → light review. **No OpenSpec, no planning files.** |
+| **Light** | ≤2 files, bugfix, config, no new API, <30 min | OpenSpec + task_plan.md + minimal progress.md → full implementation |
+| **Full** | New feature, refactor, multi-file, architecture | OpenSpec + all planning files + full review |
+
+### Quick Criteria (all must be true)
+
+- Affects exactly 1 file
+- No new public API or exported interface
+- Internal-only change (function body, bugfix, performance)
+- Estimated < 15 minutes
+
+If any criterion is false → Light or Full.
 
 ### Light Criteria (all must be true)
 
@@ -63,12 +78,25 @@ Two levels. AI suggests; user confirms or overrides.
 
 If any criterion is false → Full.
 
-### Mid-Workflow Upgrade/Downgrade
+Auto-Full (no override): architecture change, new external dependency, DB schema change, security change, >5 files.
 
-- `/spec-superpowers escalate` — Light → Full. Keeps Phase 1 output, supplements with explore phase and findings.md.
-- `/spec-superpowers simplify` — Full → Light. Skips remaining findings.md updates, simplifies subsequent phases.
+### Brainstorming and Complexity
 
-## 4. Task Workspace (Copy-Swap)
+**Critical design decision**: brainstorming depth is NOT tied to complexity level.
+
+| Mode | Brainstorming | Reason |
+|------|--------------|--------|
+| Quick | Brief confirmation (2-3 sentences) | Task is trivially scoped |
+| Light | **Full brainstorming** | Understanding the user is never abbreviated |
+| Full | **Full brainstorming** | Full exploration |
+
+Complexity only affects what happens AFTER brainstorming: OpenSpec formalization depth, planning file count, and review strictness.
+
+### Mid-Workflow Complexity Adjustment
+
+AI monitors complexity fit throughout the workflow and proactively suggests adjustments (no dedicated commands). Quick → Light/Full when scope grows. Light → Full when complexity exceeds Light criteria. Full → Light when task is simpler than assessed. Prior artifacts preserved — no rework.
+
+## 5. Task Workspace (Copy-Swap)
 
 Each task gets an isolated workspace for planning files:
 
@@ -92,42 +120,43 @@ Key design (Copy-Swap, not Symlink):
 - `.spec-tasks/` only manages backups/history for planning-with-files' three files
 - Root-level `task_plan.md` etc. are always **real files** (not symlinks); planning-with-files hooks work natively
 - On task switch: copy root files back to `.spec-tasks/<old>/` → copy `.spec-tasks/<new>/` files to root → update `_active.txt`
-- On Phase 4 Archive: copy root files back to `.spec-tasks/<task>/` → delete root planning files → delete `_active.txt`
+- On Step 6 Archive: copy root files back to `.spec-tasks/<task>/` → delete root planning files → delete `_active.txt`
 - After uninstalling spec-superpowers: root files are plain files → planning-with-files fully functional; `.spec-tasks/` becomes harmless history
 - No Windows compatibility issues (no symlink permissions needed)
 
-## 5. Pipeline (Full Mode)
+Task workspace creation happens AFTER brainstorming completes (task name derived from conversation), not before. This keeps the dialogue uninterrupted by process mechanics.
+
+## 6. Pipeline
 
 ```
-/spec-superpowers
+/ssp
     │
     ▼
-Phase -1 — Task Router (auto)
-    Check .spec-tasks/_active.txt
-    Not found → ask task name → create workspace → Phase 0
-    Found → read active task + summary → ask user: continue / archive & new / switch
+Step 1 — Understand (dialogue-first brainstorming)
+    Full: brainstorming (interactive design — one question at a time)
+    Light: brainstorming (identical to Full — NEVER shortened)
+    Quick: brief confirmation (2-3 sentences + user confirms)
     │
     ▼
-Phase 0 — Session Recovery (auto)
-    Detect task_plan.md → exists → 5-Question Reboot Test → resume from checkpoint
-    Not exists → continue
+Step 2 — Triage (post-dialogue complexity)
+    AI recommends Quick/Light/Full based on conversation outcome → user confirms
+    Light/Full: create task workspace (.spec-tasks/) with name from conversation
     │
     ▼
-Phase 1 — Specification (OpenSpec)
-    Full: /opsx:explore → /opsx:propose → openspec validate → user confirms
-    Light: /opsx:propose → openspec validate → user confirms
-    ── Gate G1: validate passed + user confirmed + brainstorming review loop passed (max 3 rounds) ──
+Step 3 — Formalize (OpenSpec specification, Light/Full only)
+    /opsx:propose → openspec validate → user confirms
+    ── Gate G1: design approved + validate passed + user confirmed (max 3 review rounds) ──
     │
     ▼
-Phase 2 — Persistent Planning (planning-with-files + writing-plans)
+Step 4 — Plan (planning-with-files + writing-plans, Light/Full only)
     writing-plans generates plan content → written into task_plan.md (planning-with-files format)
     planning-with-files hooks auto-manage attention from this point
     Generate: task_plan.md / findings.md / progress.md
     Each task annotated: file paths + acceptance criteria + test strategy
-    ── Gate G2: three files ready + plan review loop passed (max 3 rounds) ──
+    ── Gate G2: files ready + plan review loop passed (max 3 rounds) ──
     │
     ▼
-Phase 3 — Implementation (Superpowers)
+Step 5 — Build (Superpowers implementation)
     Strategy (AI recommends, user picks):
     • Subagent-Driven: independent subagent per task + two-stage review
     • Executing-Plans: batch execution + checkpoint reviews
@@ -135,58 +164,28 @@ Phase 3 — Implementation (Superpowers)
     ── Gate G3: all tests pass + review passed + evidence in progress.md ──
     │
     ▼
-Phase 4 — Archive
+Step 6 — Archive
     finishing-a-development-branch → update checkboxes
-    → openspec archive <change-name> (merge change delta into main specs)
+    → openspec archive <change-name> (Light/Full only)
     → copy root planning files to .spec-tasks/<task>/ → delete root planning files → delete _active.txt
 ```
 
+### Quick Mode Pipeline
+
+Brief inline spec (2-3 sentences in chat, user confirms) → implement → light review → clear `_active.txt`. No OpenSpec, no planning files, no task subdirectory in `.spec-tasks/`. Gates: G1-Quick (user confirmed inline spec) and G3-Quick (tests pass + single-round review).
+
 ### Light Mode Adjustments
 
-- Phase 1: `/opsx:propose` directly, skip `/opsx:explore`. `openspec validate` still runs.
-- Phase 2: Generate `task_plan.md` only, skip findings.md. `progress.md` is still created (minimal, for G3 evidence).
-- Phase 3 & 4: Same as full mode
+- Step 1: **Full brainstorming** (identical to Full mode — never shortened)
+- Step 3: OpenSpec propose + validate + confirm (same as Full)
+- Step 4: Generate `task_plan.md` only, skip findings.md. `progress.md` still created (minimal, for G3 evidence).
+- Step 5 & 6: Same as Full mode
 
 ### Sub-command Direct Jump
 
-- `/spec-superpowers spec` → Enter Phase 1, stop at G1
-- `/spec-superpowers plan` → Enter Phase 2 (requires spec to exist in `openspec/`), stop at G2
-- `/spec-superpowers impl` → Enter Phase 3 (requires `task_plan.md` to exist), then complete Phase 4
-
-## 6. Quality Gates
-
-Four hard gates. Nothing proceeds until all checks pass.
-
-| Gate | Position | Pass criteria | Failure handling |
-|------|----------|--------------|-----------------|
-| **G0** | After Phase 0 | 5-Question Reboot Test consistent + no context contradictions | Re-read files, re-test |
-| **G1** | Phase 1 → 2 | `openspec validate` passed + User explicitly confirmed spec + brainstorming review loop passed (subagent, max 3 rounds) | Fix validation errors first, then revise spec, resubmit for confirmation |
-| **G2** | Phase 2 → 3 | Three files ready + every task has file paths / acceptance criteria / test strategy + writing-plans review loop passed (max 3 rounds) | Fill gaps, re-check |
-| **G3** | Phase 3 → 4 | All tests pass + two-stage review passed (spec conformance → code quality) + verification evidence written to progress.md | 3-Strike → systematic-debugging → escalate to user |
-
-### Review Loop Mechanism
-
-```
-Phase complete → dispatch reviewer subagent → review result
-    ├─ Pass → gate clears
-    └─ Fail → fix issues → re-review (max 3 rounds)
-                            └─ 3 rounds still failing → escalate to user
-```
-
-### Upgrade/Downgrade Gate Transitions
-
-When switching complexity mid-workflow:
-- **escalate (Light → Full)**: Current gate still applies. After transition, subsequent gates use Full criteria (e.g., G2 requires findings.md).
-- **simplify (Full → Light)**: Current gate criteria switch to Light immediately. Subsequent gates use Light criteria.
-
-### Error Escalation Protocol (Phase 3)
-
-```
-Error → Strike 1: standard fix
-      → Strike 2: check spec alignment
-      → Strike 3: trigger systematic-debugging
-                    → still unresolved → challenge architecture → escalate to user
-```
+- `/ssp:design` → Enter Step 1-3, stop at G1
+- `/ssp:plan` → Enter Step 4 (requires spec to exist in `openspec/`), stop at G2
+- `/ssp:impl` → Enter Step 5 (requires `task_plan.md` to exist), then complete Step 6
 
 ## 7. Gatekeeper Rule
 
@@ -194,19 +193,17 @@ File: `.cursor/00-spec-superpowers.mdc`
 
 ```yaml
 ---
-description: "Spec-Superpowers gatekeeper: blocks coding without confirmed spec"
+description: "Spec-Superpowers gatekeeper: auto-recovery, session awareness, and gentle coding guide"
 globs: "*"
 alwaysApply: true
 ---
 ```
 
 Behavior:
-1. **Detect**: Non-trivial coding task identified → check for active task with confirmed spec
-2. **Block**: No active task or no confirmed spec → guide user to `/spec-superpowers`
-3. **Anti-skip**: User pushes to skip → politely decline and redirect
-4. **Pass**: Active task exists (`.spec-tasks/_active.txt` present) + corresponding `openspec/changes/<task-name>/` has spec artifacts → allow coding
-
-Fixed to OpenSpec mode only (no Spec-Kit / OpenSpec dual-mode switching).
+1. **Detect**: Active task → silently restore context, brief status message
+2. **Invite**: No active task + coding request → gently invite user to `/ssp` or direct dialogue — NOT a hard block
+3. **Respect**: User insists on skipping → allow with a soft reminder
+4. **Pass**: Non-coding requests → allow freely
 
 ## 8. Loose Coupling Architecture
 
@@ -240,7 +237,7 @@ spec-superpowers (orchestration layer)
 Defined in `integration-guide.md`:
 
 ```
-On /spec-superpowers invocation:
+On /ssp invocation (silent, only interrupts when missing):
 
 1. OpenSpec CLI → command -v openspec || npm list -g @fission-ai/openspec
    Missing → prompt: npm install -g @fission-ai/openspec@latest
@@ -294,7 +291,20 @@ npx skills remove spec-superpowers
 | planning-with-files | `npx skills update` | None |
 | spec-superpowers | `npx skills update` | Orchestration only |
 
-## 10. Validation Script (test_skill.py)
+## 10. Quality Gates
+
+Six gates total: G0-G3 for Light/Full, G1-Quick + G3-Quick for Quick mode.
+
+| Gate | Position | Pass criteria | Failure handling |
+|------|----------|--------------|-----------------|
+| **G1-Quick** | Before Quick implementation | AI stated what/why/scope, user confirmed | Clarify → re-state → if scope grows, upgrade |
+| **G3-Quick** | After Quick implementation | Tests pass + single-round review | Fix → re-review. 2 failures → suggest upgrade |
+| **G0** | After session recovery | 5-Question Reboot Test consistent + no contradictions | Re-read files, re-test |
+| **G1** | Step 3 → 4 | Brainstorming design approved + `openspec validate` passed + user confirmed (max 3 rounds) | Fix validation → revise spec → resubmit |
+| **G2** | Step 4 → 5 | Files ready + every task annotated + review loop passed (max 3 rounds) | Fill gaps, re-check |
+| **G3** | Step 5 → 6 | All tests pass + two-stage review + evidence in progress.md | 3-Strike → systematic-debugging → escalate |
+
+## 11. Validation Script (test_skill.py)
 
 ~60 checks across 10 categories:
 
@@ -305,15 +315,15 @@ npx skills remove spec-superpowers
 | 3 | references/ | 4 files exist and non-empty (>100B) |
 | 4 | assets/ | constitution.md exists |
 | 5 | Internal links | All `](references/...)` and `](assets/...)` links resolve |
-| 6 | Key content | Contains `/spec-superpowers`, complexity triage, pipeline phases |
+| 6 | Key content | Contains `/ssp`, complexity triage, pipeline steps |
 | 7 | Line limit | SKILL.md ≤ 120 lines |
 | 8 | No redundant concepts | No TDD-First / RED-GREEN-REFACTOR / SOLID (delegate to sub-skills) |
-| 9 | Core features | Two-level complexity, session recovery, quality gates, 5-Question Reboot, review loops, 3-Strike |
+| 9 | Core features | Complexity triage, session recovery, quality gates, 5-Question Reboot, review loops, 3-Strike, dialogue-first |
 | 10 | Dependency skills | Check using-superpowers, planning-with-files, brainstorming, writing-plans, TDD, verification-before-completion, systematic-debugging installed |
 
 Supports `SKILL_DIR` and `SKILLS_ROOT` env vars. Exit code 0/1 for CI.
 
-## 11. Install Scripts
+## 12. Install Scripts
 
 ### install.sh (macOS/Linux)
 
@@ -330,7 +340,7 @@ Each step with `|| echo` fallback. Single-step failure does not abort.
 
 Same logic, PowerShell syntax.
 
-## 12. Writing-Plans vs Planning-with-Files Responsibilities
+## 13. Writing-Plans vs Planning-with-Files Responsibilities
 
 Clear division of concerns:
 - **writing-plans** (Superpowers) = Plan "Author" — generates content; quality criteria: each step 2-5 min, complete file paths, zero placeholders
@@ -338,7 +348,7 @@ Clear division of concerns:
 - Flow: writing-plans produces plan content → content formatted per planning-with-files' task_plan.md template → written directly into root task_plan.md → planning-with-files hooks auto-manage from here
 - All plans unified in `.spec-tasks/<task>/task_plan.md`; no separate `docs/superpowers/plans/` file needed
 
-## 13. File Inventory
+## 14. File Inventory
 
 | File | Purpose | Installed by npx |
 |------|---------|:---:|
@@ -348,7 +358,7 @@ Clear division of concerns:
 | `skills/spec-superpowers/references/quality-gates.md` | G0-G3 gate criteria | Yes |
 | `skills/spec-superpowers/references/integration-guide.md` | Install / deps / troubleshooting | Yes |
 | `skills/spec-superpowers/assets/templates/constitution.md` | Project constitution template | Yes |
-| `.cursor/00-spec-superpowers.mdc` | Always-on gatekeeper rule | No (manual copy) |
+| `.cursor/00-spec-superpowers.mdc` | Always-on gentle guide rule | No (manual copy) |
 | `install.sh` | macOS/Linux installer | No |
 | `install.ps1` | Windows installer | No |
 | `test_skill.py` | Validation script | No |

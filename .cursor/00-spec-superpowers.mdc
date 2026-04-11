@@ -1,5 +1,5 @@
 ---
-description: "Spec-Superpowers gatekeeper: auto-recovery, session awareness, and coding guard"
+description: "Spec-Superpowers gatekeeper: auto-recovery, session awareness, and gentle coding guide"
 globs: "*"
 alwaysApply: true
 ---
@@ -15,17 +15,17 @@ Check if `.spec-tasks/_active.txt` exists:
 - **Yes** → Read the task name. Read `task_plan.md` and `progress.md` at project root (or in `.spec-tasks/<task>/` if root copies missing).
   - Silently restore context: summarize active task, current phase, and next step.
   - If root planning files are missing but `.spec-tasks/<task>/` has them → copy them to root first (copy-swap restore).
-  - Then tell the user: "检测到活跃任务 **<task-name>**，已恢复上下文。当前进度：<brief status>。可以继续，或输入 `/spec-superpowers` 管理任务。"
+  - Then tell the user: "检测到活跃任务 **<task-name>**，已恢复上下文。当前进度：<brief status>。可以继续，或输入 `/ssp` 管理任务。"
   - Proceed with the user's request in the context of the active task.
 - **No** → go to step 2.
 
-### 2. Coding Guard
+### 2. Coding Guide (Invitation, Not Block)
 
 If no active task exists AND the user's request involves writing/modifying code (new feature, bugfix, refactor):
 
-- Block and guide: "请先运行 `/spec-superpowers` 启动规范工作流。"
-- User pushes to skip → firmly decline: "spec-superpowers 工作流要求先完成规范再编码。请运行 `/spec-superpowers` 开始。"
-- Exception: trivial non-functional changes (typo fix, comment edit, formatting) may proceed without the workflow.
+- **Invite, don't block**: "看起来这是一个新的开发任务。要不要先聊聊你想做什么？我可以帮你理清思路，确保方向对了再动手。输入 `/ssp` 启动设计-实现流程，或者直接告诉我你的想法，我们从对话开始。"
+- If the user insists on skipping: respect their choice but gently remind once — "好的，直接开始。如果后面发现需要更系统地梳理，随时输入 `/ssp`。"
+- **Exception**: trivial non-functional changes (typo fix, comment edit, formatting) may proceed without any prompt.
 
 ### 3. Non-Coding Pass-Through
 
@@ -33,6 +33,6 @@ If no active task AND the request is not a coding task (questions, exploration, 
 
 - Allow freely. No intervention needed.
 
-**Pass condition for coding:** `.spec-tasks/_active.txt` present AND spec artifacts exist in `openspec/changes/<task-name>/` or `openspec/`.
+**Pass condition for coding:** `.spec-tasks/_active.txt` present AND either (a) Quick mode — inline spec confirmed in current conversation, or (b) Light/Full mode — spec artifacts exist in `openspec/changes/<task-name>/` or `openspec/`.
 
-**Full workflow driven by the `spec-superpowers` Skill. This rule is the always-on gatekeeper.**
+**Full workflow driven by the `spec-superpowers` Skill. This rule is the always-on gentle guide.**

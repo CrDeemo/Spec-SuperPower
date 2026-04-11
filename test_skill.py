@@ -59,9 +59,8 @@ name_match = re.search(r"^name:\s*(.+)", fm_text, re.MULTILINE)
 name_value = name_match.group(1).strip() if name_match else ""
 check("name = 'spec-superpowers'", name_value == "spec-superpowers")
 
-fm_and_desc = fm_text
-check("Trigger '/spec-superpowers' in description", "/spec-superpowers" in fm_and_desc)
-check("Trigger 'spec first' in description", "spec first" in fm_and_desc)
+check("Trigger '/ssp' in description", "/ssp" in fm_text)
+check("Trigger 'spec first' in description", "spec first" in fm_text)
 
 forbidden_fields = ["version:", "license:", "author:", "compatibility:"]
 for field in forbidden_fields:
@@ -107,19 +106,22 @@ for link in links_found:
     check(f"Link resolves: {link}", target.is_file())
 
 # ---------------------------------------------------------------------------
-# Category 6 — Key content
+# Category 6 — Key content (commands + structure)
 # ---------------------------------------------------------------------------
 category("Category 6: Key content")
 
 lower_text = skill_text.lower()
-check("Contains '/spec-superpowers' command", "/spec-superpowers" in skill_text)
+check("Contains '/ssp' command", "/ssp" in skill_text)
+check("Contains '/ssp:design' command", "/ssp:design" in skill_text)
+check("Contains '/ssp:plan' command", "/ssp:plan" in skill_text)
+check("Contains '/ssp:impl' command", "/ssp:impl" in skill_text)
 check(
     "Contains complexity triage ('light' or 'triage' or 'complexity')",
     any(w in lower_text for w in ["light", "triage", "complexity"]),
 )
 check(
-    "Contains pipeline phases ('phase' or 'pipeline')",
-    any(w in lower_text for w in ["phase", "pipeline"]),
+    "Contains step-based structure ('step 1' or 'step 2')",
+    "step 1" in lower_text or "step 2" in lower_text,
 )
 
 # ---------------------------------------------------------------------------
@@ -145,16 +147,24 @@ for concept in redundant:
 category("Category 9: Core features")
 
 check(
-    "Two-level complexity mentioned",
-    "light" in lower_text and "full" in lower_text,
+    "Three-level complexity (Quick/Light/Full)",
+    "quick" in lower_text and "light" in lower_text and "full" in lower_text,
+)
+check(
+    "Dialogue-first principle mentioned",
+    "dialogue" in lower_text or "brainstorming" in lower_text,
+)
+check(
+    "Brainstorming NEVER shortened for Light",
+    "never" in lower_text and ("shortened" in lower_text or "abbreviated" in lower_text),
 )
 check(
     "Session recovery mentioned",
-    "session recovery" in lower_text or "session" in lower_text and "recover" in lower_text,
+    "session recovery" in lower_text or ("session" in lower_text and "recover" in lower_text),
 )
 check(
-    "Quality gates mentioned (G0 or G1)",
-    "g0" in lower_text or "G0" in skill_text or "g1" in lower_text or "G1" in skill_text,
+    "Quality gates mentioned (G1 or Gate)",
+    "g1" in lower_text or "gate" in lower_text,
 )
 check(
     "5-Question or Reboot mentioned",
@@ -164,18 +174,18 @@ check("Review loop mentioned", "review" in lower_text and "loop" in lower_text)
 check("3-Strike mentioned", "3-strike" in lower_text or "3-Strike" in skill_text)
 check("Subagent mentioned", "subagent" in lower_text)
 check(
-    "Finishing / archive mentioned",
-    "finishing" in lower_text or "archive" in lower_text,
+    "Archive mentioned",
+    "archive" in lower_text,
 )
 check(
-    "systematic-debugging or 3-Strike mentioned",
-    "systematic-debugging" in lower_text or "3-strike" in lower_text,
+    "Post-dialogue complexity (triage after brainstorming)",
+    "post-dialogue" in lower_text or "after brainstorming" in lower_text,
 )
 
 # ---------------------------------------------------------------------------
-# Category 10 — v2 features: Task Workspace
+# Category 10 — Task Workspace
 # ---------------------------------------------------------------------------
-category("Category 10: v2 features — Task Workspace")
+category("Category 10: Task Workspace")
 
 check(
     "SKILL.md mentions .spec-tasks or task workspace",
@@ -186,12 +196,12 @@ check(
     "_active.txt" in skill_text,
 )
 check(
-    "SKILL.md mentions copy-swap (not symlink)",
-    "copy-swap" in lower_text or "copy" in lower_text and "swap" in lower_text,
+    "SKILL.md mentions copy-swap",
+    "copy-swap" in lower_text or ("copy" in lower_text and "swap" in lower_text),
 )
 check(
-    "SKILL.md mentions /spec-superpowers switch command",
-    "/spec-superpowers switch" in skill_text,
+    "SKILL.md mentions /ssp:switch command",
+    "/ssp:switch" in skill_text,
 )
 
 planning_wf = refs_dir / "planning-workflow.md"
@@ -212,16 +222,16 @@ check(
 )
 
 # ---------------------------------------------------------------------------
-# Category 11 — v2 features: OpenSpec validate/archive + escalate/simplify
+# Category 11 — OpenSpec validate/archive + complexity adjustment
 # ---------------------------------------------------------------------------
-category("Category 11: v2 features — validate/archive/complexity adjustment")
+category("Category 11: validate/archive/complexity adjustment")
 
 check(
     "SKILL.md mentions openspec validate",
     "openspec validate" in lower_text or "validate" in lower_text,
 )
 check(
-    "SKILL.md mentions complexity adjustment (light→full or full→light)",
+    "SKILL.md mentions complexity adjustment",
     ("light" in lower_text and "full" in lower_text)
     and ("upgrade" in lower_text or "downgrade" in lower_text or "adjustment" in lower_text),
 )
@@ -239,8 +249,12 @@ check(
     "openspec archive" in openspec_lower,
 )
 check(
-    "openspec-workflow.md mentions multi-change support",
-    "multi-change" in openspec_lower or "changes/" in openspec_text,
+    "openspec-workflow.md mentions Quick mode skips OpenSpec",
+    "quick" in openspec_lower and "skip" in openspec_lower,
+)
+check(
+    "openspec-workflow.md mentions brainstorming never shortened",
+    "never" in openspec_lower and ("shortened" in openspec_lower or "abbreviated" in openspec_lower),
 )
 
 quality_gates = refs_dir / "quality-gates.md"

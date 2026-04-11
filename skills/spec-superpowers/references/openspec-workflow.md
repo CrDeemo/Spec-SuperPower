@@ -1,6 +1,14 @@
 # OpenSpec Workflow
 
-How spec-superpowers invokes brainstorming (Superpowers) + OpenSpec for specification (Phase 1) and archiving (Phase 4).
+How spec-superpowers invokes brainstorming (Superpowers) + OpenSpec for specification (Step 3) and archiving (Step 6).
+
+## Applicability
+
+| Mode | Brainstorming (Step 1) | OpenSpec (Step 3) | Archive (Step 6) |
+|------|----------------------|-------------------|-------------------|
+| **Quick** | Brief confirmation (2-3 sentences) | **Skipped** — inline spec only | Clear `_active.txt` only |
+| **Light** | **Full** (never shortened) | propose + validate + confirm | `openspec archive` + copy-swap |
+| **Full** | **Full** | propose + validate + confirm | `openspec archive` + copy-swap |
 
 ## Spec Artifact Location
 
@@ -14,24 +22,16 @@ openspec/changes/
 
 Task name from `.spec-tasks/_active.txt` = change name. Managed natively by OpenSpec.
 
-## Full Mode Flow
+## Specification Flow (Light and Full)
 
 ```
-brainstorming (interactive design) → /opsx:propose → openspec validate → User Confirmation
+brainstorming design approved → /opsx:propose → openspec validate → User Confirmation
 ```
 
-1. **Brainstorm** — Read & invoke the `brainstorming` skill (Superpowers). Explore context, ask clarifying questions, propose 2-3 approaches with trade-offs, present recommended design, wait for user approval. Output: design document.
+1. **Brainstorm** — Invoke the `brainstorming` skill (Superpowers). Explore context, ask clarifying questions one at a time, propose 2-3 approaches with trade-offs, present recommended design, wait for user approval. Output: design document. Brainstorming is identical for Light and Full — understanding the user is never abbreviated.
 2. **Propose** — `/opsx:propose` to formalize the approved design into an OpenSpec change proposal + spec artifacts in `openspec/`
 3. **Validate** — `openspec validate --change <name>` for structural completeness. Fix errors first.
 4. **Confirm** — Present final spec to user, wait for explicit confirmation
-
-## Light Mode Flow
-
-```
-brainstorming (shortened) → /opsx:propose → openspec validate → User Confirmation
-```
-
-Shortened brainstorming: present 2-3 approaches, user picks one, proceed. Skip deep context exploration. Steps 2-4 same as Full mode.
 
 ## Spec Confirmation Protocol
 
@@ -58,7 +58,7 @@ All three required:
 
 On user change request: revise → re-validate → re-review → resubmit for confirmation.
 
-## Phase 4: Archive
+## Step 6: Archive
 
 After G3 passes:
 
@@ -67,6 +67,8 @@ openspec archive <change-name>
 ```
 
 Merges change delta into main specs. Then: copy root planning files to `.spec-tasks/<task>/` → clean root files + `_active.txt`.
+
+Quick mode: no OpenSpec archive — just clear `_active.txt`.
 
 ## Loose Coupling
 

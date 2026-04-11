@@ -1,10 +1,12 @@
 # Planning Workflow
 
-How spec-superpowers uses planning-with-files for persistent planning (Phase 2), session recovery (Phase 0), and task workspace management (Phase -1).
+How spec-superpowers uses planning-with-files for persistent planning (Step 4), session recovery, and task workspace management.
 
 ## Task Workspace (Copy-Swap)
 
 Each task gets isolated planning files. Root files are always **real files** (never symlinks).
+
+Quick mode exception: Quick tasks only write `_active.txt` (no task subdirectory, no planning files). After completion, `_active.txt` is deleted. If upgraded to Light/Full mid-workflow, a full task workspace is created at that point.
 
 ```
 .spec-tasks/
@@ -18,11 +20,11 @@ project root/
 
 ### Copy-Swap Protocol
 
-**New task:** ask name (kebab-case) → create `.spec-tasks/<name>/` → write `_active.txt` → pipeline creates root files.
+**New task:** After brainstorming completes and complexity is triaged (Light/Full), derive task name from conversation (kebab-case) → create `.spec-tasks/<name>/` → write `_active.txt` → pipeline creates root files.
 
-**Switch task:** copy root files → `.spec-tasks/<old>/` → copy `.spec-tasks/<new>/` → root → update `_active.txt`.
+**Switch task (`/ssp:switch`):** copy root files → `.spec-tasks/<old>/` → copy `.spec-tasks/<new>/` → root → update `_active.txt`.
 
-**Archive (Phase 4):** copy root → `.spec-tasks/<task>/` → delete root files + `_active.txt`.
+**Archive (Step 6):** copy root → `.spec-tasks/<task>/` → delete root files + `_active.txt`.
 
 **Uninstall safety:** root files are plain → planning-with-files works normally. `.spec-tasks/` = harmless history.
 
@@ -81,10 +83,10 @@ planning-with-files hooks auto-inject planning context:
 
 Hooks activate automatically when planning files exist at root — no explicit invocation.
 
-## Session Recovery (Phase 0)
+## Session Recovery
 
 Check for `task_plan.md` at root:
-- **Not found** → continue to Phase 1
+- **Not found** → continue to Step 1 (brainstorming)
 - **Found** → run 5-Question Reboot Test
 
 ### 5-Question Reboot Test
@@ -98,6 +100,22 @@ Check for `task_plan.md` at root:
 | 5 | What did I do? | progress.md |
 
 All answers must be consistent. Checked tasks ↔ progress.md, goal ↔ spec, findings ↔ code state.
+
+### Code Reality Check (post-reboot verification)
+
+After the 5 questions pass, run a code state verification:
+
+1. **Diff scan** — check `git diff --stat` (or equivalent) for uncommitted changes in the working tree.
+2. **Completed tasks → code exists?** — For each task marked done in task_plan.md, verify the listed files have actual modifications (staged, committed, or in working tree).
+3. **Pending tasks → no premature changes?** — For tasks marked pending, verify their listed files have no unexpected modifications.
+
+| Finding | Severity | Action |
+|---------|----------|--------|
+| Code changed but task not marked done | Warning | Ask user: "检测到以下文件有工作流外的修改：[list]。是否纳入当前任务？" |
+| Task marked done but files unchanged | Error | Flag contradiction: "progress.md 记录与代码状态矛盾，请确认。" |
+| Pending task files have changes | Warning | Ask user: confirm intentional or revert |
+
+Code Reality Check failures do not block G0 on their own — they produce warnings that the user must acknowledge before resuming. If the user acknowledges, record the resolution in progress.md and proceed.
 
 Pass → **G0 clears** → resume from last unchecked task.
 Fail → re-read files, re-test. Still inconsistent → present contradictions to user.
