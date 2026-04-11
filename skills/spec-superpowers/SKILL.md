@@ -1,5 +1,5 @@
 ---
-name: spec-superpowers
+name: ssp
 description: >
   Orchestrates OpenSpec + planning-with-files + Superpowers into a dialogue-first,
   spec-driven development workflow. Understand the user's intent through brainstorming

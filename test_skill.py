@@ -57,7 +57,7 @@ check("'description:' field present", "description:" in fm_text)
 
 name_match = re.search(r"^name:\s*(.+)", fm_text, re.MULTILINE)
 name_value = name_match.group(1).strip() if name_match else ""
-check("name = 'spec-superpowers'", name_value == "spec-superpowers")
+check("name = 'ssp'", name_value == "ssp")
 
 check("Trigger '/ssp' in description", "/ssp" in fm_text)
 check("Trigger 'spec first' in description", "spec first" in fm_text)
